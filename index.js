@@ -1,12 +1,9 @@
 var five = require('johnny-five'),
     board = new five.Board();
 
-var lcdHeight = 32,
-    lcdWidth = 128;
+var buffer = [];
 
-var address = 0x3C;
-
-var buffer = [
+var adafruitLogo = [
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -40,75 +37,109 @@ var buffer = [
 0x03, 0x03, 0x03, 0x03, 0x03, 0x01, 0x00, 0x00, 0x00, 0x01, 0x03, 0x01, 0x00, 0x00, 0x00, 0x03,
 0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 ];
-// buffer = new Buffer(buffer.length);
-// buffer.fill(0);
 
-function drawPixel(x, y, color) {
+var OLED = {};
+OLED.HEIGHT = 32;
+OLED.WIDTH = 128;
+OLED.ADDRESS = 0x3C;
+OLED.DISPLAY_OFF = 0xAE;
+OLED.DISPLAY_ON = 0xAF;
+OLED.SET_DISPLAY_CLOCK_DIV = 0xD5;
+OLED.SET_MULTIPLEX = 0xA8;
+OLED.SET_DISPLAY_OFFSET = 0xD3;
+OLED.SET_START_LINE = 0x40;
+OLED.CHARGE_PUMP = 0x8D;
+OLED.EXTERNAL_VCC = false;
+OLED.MEMORY_MODE = 0x20;
+OLED.SEG_REMAP = 0xA0;
+OLED.COM_SCAN_DEC = 0xC8;
+OLED.SET_COM_PINS = 0xDA;
+OLED.SET_CONTRAST = 0x81;
+OLED.SET_PRECHARGE = 0xd9;
+OLED.SET_VCOM_DETECT = 0xDB;
+OLED.DISPLAY_ALL_ON_RESUME = 0xA4;
+OLED.NORMAL_DISPLAY = 0xA6;
+OLED.COLUMN_ADDR = 0x21;
+OLED.PAGE_ADDR = 0x22;
+OLED.INVERT_DISPLAY = 0xA7;
 
-}
+function drawPixel(x, y, color) {}
 
-function sendI2CCmd(buf) {
-  // send control and actual
-  board.io.sendI2CWriteRequest(address, [0x00, buf]);
+function sendI2CCmd(val) {
+  // send control and actual val
+  board.io.sendI2CWriteRequest(OLED.ADDRESS, [0x00, val]);
 }
 
 function init() {
-  // initialise seq from adafruit
-  // turn off display
-  sendI2CCmd(0xAE);
-  // initialise
-  sendI2CCmd(0xD5);
-  sendI2CCmd(0x80);
-  sendI2CCmd(0xA8);
-  sendI2CCmd(0x1F);
-  sendI2CCmd(0xD3);
-  sendI2CCmd(0x0);
-  sendI2CCmd(0x8D);
-  sendI2CCmd(0x14);
-  sendI2CCmd(0x20);
-  sendI2CCmd(0x00);
-  sendI2CCmd(0x1);
-  sendI2CCmd(0xC8);
-  sendI2CCmd(0xDA);
-  sendI2CCmd(0x02);
-  sendI2CCmd(0x81);
-  sendI2CCmd(0x8F);
-  sendI2CCmd(0xd9);
-  sendI2CCmd(0xF1);
-  sendI2CCmd(0xDB);
-  sendI2CCmd(0x40);
-  sendI2CCmd(0xA4);
-  sendI2CCmd(0xA6);
-  // turn on display
-  sendI2CCmd(0xAF);
+  // enable i2C in firmata
+  board.io.sendI2CConfig(0);
+
+  var initSeq = [
+    OLED.DISPLAY_OFF,
+    OLED.SET_DISPLAY_CLOCK_DIV, 0x80,
+    OLED.SET_MULTIPLEX, 0x1F,
+    OLED.SET_DISPLAY_OFFSET, 0x00, // sets offset pro to 0
+    OLED.SET_START_LINE,
+    OLED.CHARGE_PUMP, 0x14, // charge pump val
+    OLED.MEMORY_MODE, 0x00, // 0x0 act like ks0108
+    OLED.SEG_REMAP,
+    OLED.COM_SCAN_DEC,
+    OLED.SET_COM_PINS, 0x02, // com pins val
+    OLED.SET_CONTRAST, 0x8F, // contrast val
+    OLED.SET_PRECHARGE, 0xF1, // precharge val
+    OLED.SET_VCOM_DETECT, 0x40, // vcom detect
+    OLED.DISPLAY_ALL_ON_RESUME,
+    OLED.NORMAL_DISPLAY,
+    OLED.DISPLAY_ON
+  ];
+
+  var i, initSeqLen = initSeq.length;
+
+  for (i = 0; i < initSeqLen; i ++) {
+    sendI2CCmd(initSeq[i]);
+  }
 }
 
-function displayAdafruitLogo() {
-  // display seq from adafruit
-  sendI2CCmd(0x21);
-  sendI2CCmd(0);   // Column start address (0 = reset)
-  sendI2CCmd(127); // Column end address (127 = reset)
-  sendI2CCmd(0x22);
-  sendI2CCmd(0); // Page start address (0 = reset)
-  sendI2CCmd(3); // Page end address
+// currently displaying back to front since switching from firmata.js to johnny-five
+function display() {
+  var displaySeq = [
+    OLED.COLUMN_ADDR, 0, OLED.WIDTH - 1, // column start and end address 
+    OLED.PAGE_ADDR, 0, 3 // page start and end address
+  ];
+  var i, displaySeqLen = displaySeq.length;
 
-  for (var col = 0; col < 128; col ++) {
-    for (var row = 0; row < 4; row ++ ) {
-      var index = (col * 4) + row;
-      board.io.sendI2CWriteRequest(address, [0x40, buffer[index]]);
+  for (i = 0; i < displaySeqLen; i ++) {
+    sendI2CCmd(displaySeq[i]);
+  }
+
+  for (var col = 0; col < OLED.WIDTH; col ++) {
+    for (var row = 0; row < OLED.HEIGHT / 8; row ++ ) {
+      var index = (col * (OLED.HEIGHT / 8)) + row;
+      board.io.sendI2CWriteRequest(OLED.ADDRESS, [0x40, buffer[index]]);
     }
   }
 }
 
-// var board = new firmata.Board('/dev/cu.usbmodem1411',function() {
-board.on("ready", function() {
-  console.log("i see you board");
+function clearDisplay() {
+  buffer = new Buffer(buffer.length);
+  buffer.fill(0);
+  display();
+}
 
-  board.io.sendI2CConfig(0);
-
+board.on('ready', function() {
+  console.log('I see you, board');
+  
+  // send setup sequence to OLED
   init();
-  displayAdafruitLogo();
+
+  // display buffer
+  buffer = adafruitLogo;
+  display();
+
   // invert display
-  //sendI2CCmd(0xA7);
+  //sendI2CCmd(OLED.INVERT_DISPLAY);
+
+  // clear display
+  //clearDisplay();
 
 });  
