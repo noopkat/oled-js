@@ -1,0 +1,29 @@
+{
+  "name": "johnny-five-oled-example",
+  "version": "0.0.0",
+  "description": "example of using johnny-five lib with an oled device",
+  "main": "index.js",
+  "dependencies": {
+    "johnny-five": "~0.8.9",
+    "firmata": "~0.3.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/noopkat/johnny-five-oled-example.git"
+  },
+  "keywords": [
+    "johnny-five",
+    "oled",
+    "firmata"
+  ],
+  "author": "Suz Hinton",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/noopkat/johnny-five-oled-example/issues"
+  },
+  "homepage": "https://github.com/noopkat/johnny-five-oled-example"
+}
