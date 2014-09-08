@@ -20,3 +20,4 @@ Todo list:
 + drawBitmap
 + scrollLeft
 + scrollRight
++ writeText
