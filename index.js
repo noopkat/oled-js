@@ -1,4 +1,5 @@
-var firmata = require('firmata');
+var five = require('johnny-five'),
+    board = new five.Board();
 
 var lcdHeight = 32,
     lcdWidth = 128;
@@ -48,7 +49,7 @@ function drawPixel(x, y, color) {
 
 function sendI2CCmd(buf) {
   // send control and actual
-  board.sendI2CWriteRequest(address, [0x00, buf]);
+  board.io.sendI2CWriteRequest(address, [0x00, buf]);
 }
 
 function init() {
@@ -91,25 +92,19 @@ function displayAdafruitLogo() {
   sendI2CCmd(0); // Page start address (0 = reset)
   sendI2CCmd(3); // Page end address
 
-  //board.sendI2CWriteRequest(address, 0x40);
-
-  //board.sendI2CWriteRequest(address, buffer);
-
   for (var col = 0; col < 128; col ++) {
     for (var row = 0; row < 4; row ++ ) {
       var index = (col * 4) + row;
-      board.sendI2CWriteRequest(address, [0x40, buffer[index]]);
+      board.io.sendI2CWriteRequest(address, [0x40, buffer[index]]);
     }
   }
 }
 
-var board = new firmata.Board('/dev/cu.usbmodem1411',function() {
+// var board = new firmata.Board('/dev/cu.usbmodem1411',function() {
+board.on("ready", function() {
   console.log("i see you board");
-  board.on("string", function(string) {
-    console.log(string);
-  });
 
-  board.sendI2CConfig(0);
+  board.io.sendI2CConfig(0);
 
   init();
   displayAdafruitLogo();
