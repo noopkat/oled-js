@@ -39,22 +39,23 @@ var buffer = [
 0x03, 0x03, 0x03, 0x03, 0x03, 0x01, 0x00, 0x00, 0x00, 0x01, 0x03, 0x01, 0x00, 0x00, 0x00, 0x03,
 0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 ];
+// buffer = new Buffer(buffer.length);
+// buffer.fill(0);
 
 function drawPixel(x, y, color) {
 
 }
 
 function sendI2CCmd(buf) {
-  // send control
-  board.sendI2CWriteRequest(address, 0x00);
-  // send actual buffer
-  board.sendI2CWriteRequest(address, buf);
+  // send control and actual
+  board.sendI2CWriteRequest(address, [0x00, buf]);
 }
-
 
 function init() {
   // initialise seq from adafruit
+  // turn off display
   sendI2CCmd(0xAE);
+  // initialise
   sendI2CCmd(0xD5);
   sendI2CCmd(0x80);
   sendI2CCmd(0xA8);
@@ -81,7 +82,7 @@ function init() {
   sendI2CCmd(0xAF);
 }
 
-function display() {
+function displayAdafruitLogo() {
   // display seq from adafruit
   sendI2CCmd(0x21);
   sendI2CCmd(0);   // Column start address (0 = reset)
@@ -90,33 +91,29 @@ function display() {
   sendI2CCmd(0); // Page start address (0 = reset)
   sendI2CCmd(3); // Page end address
 
-  board.sendI2CWriteRequest(address, 0x40);
+  //board.sendI2CWriteRequest(address, 0x40);
 
-  board.sendI2CWriteRequest(address, buffer);
+  //board.sendI2CWriteRequest(address, buffer);
 
-  // for (var col = 0; col < 128; col ++) {
-  //   for (var row = 0; row < 4; row ++ ) {
-  //     var index = (col * 4) + row;
-  //     board.sendI2CWriteRequest(address, buffer[index]);
-  //   }
-  // }
-
+  for (var col = 0; col < 128; col ++) {
+    for (var row = 0; row < 4; row ++ ) {
+      var index = (col * 4) + row;
+      board.sendI2CWriteRequest(address, [0x40, buffer[index]]);
+    }
+  }
 }
 
-var board = new firmata.Board('/dev/cu.usbmodem1411',function(){
+var board = new firmata.Board('/dev/cu.usbmodem1411',function() {
   console.log("i see you board");
   board.on("string", function(string) {
     console.log(string);
   });
 
-  board.sendI2CConfig();
+  board.sendI2CConfig(0);
 
   init();
-  display();
+  displayAdafruitLogo();
   // invert display
-  sendI2CCmd(0xA7);
+  //sendI2CCmd(0xA7);
 
-  board.sendI2CReadRequest( address, 6, function(data) {
-    console.log(data);
-  });
 });  
