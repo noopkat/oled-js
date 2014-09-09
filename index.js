@@ -47,7 +47,7 @@ OLED.DISPLAY_ON = 0xAF;
 OLED.SET_DISPLAY_CLOCK_DIV = 0xD5;
 OLED.SET_MULTIPLEX = 0xA8;
 OLED.SET_DISPLAY_OFFSET = 0xD3;
-OLED.SET_START_LINE = 0x40;
+OLED.SET_START_LINE = 0x0;
 OLED.CHARGE_PUMP = 0x8D;
 OLED.EXTERNAL_VCC = false;
 OLED.MEMORY_MODE = 0x20;
@@ -78,7 +78,7 @@ function init() {
     OLED.DISPLAY_OFF,
     OLED.SET_DISPLAY_CLOCK_DIV, 0x80,
     OLED.SET_MULTIPLEX, 0x1F,
-    OLED.SET_DISPLAY_OFFSET, 0x00, // sets offset pro to 0
+    OLED.SET_DISPLAY_OFFSET, 0x0, // sets offset pro to 0
     OLED.SET_START_LINE,
     OLED.CHARGE_PUMP, 0x14, // charge pump val
     OLED.MEMORY_MODE, 0x00, // 0x0 act like ks0108
@@ -126,18 +126,28 @@ function clearDisplay() {
   display();
 }
 
+function invertDisplay(bool) {
+  if (bool) {
+    sendI2CCmd(OLED.INVERT_DISPLAY);
+  } else {
+    sendI2CCmd(OLED.NORMAL_DISPLAY);
+  }
+}
+
 board.on('ready', function() {
   console.log('I see you, board');
   
   // send setup sequence to OLED
   init();
 
+  clearDisplay();
+
   // display buffer
   buffer = adafruitLogo;
   display();
 
   // invert display
-  //sendI2CCmd(OLED.INVERT_DISPLAY);
+  //invertDisplay(true);
 
   // clear display
   //clearDisplay();
