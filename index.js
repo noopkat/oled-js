@@ -64,9 +64,17 @@ OLED.COLUMN_ADDR = 0x21;
 OLED.PAGE_ADDR = 0x22;
 OLED.INVERT_DISPLAY = 0xA7;
 
-function sendI2CCmd(val) {
+function writeI2C(type, val) {
+  var control;
+  if (type === 'data') {
+    control = 0x40;
+  } else if (type === 'cmd') {
+    control = 0x00;
+  } else {
+    return;
+  }
   // send control and actual val
-  board.io.sendI2CWriteRequest(OLED.ADDRESS, [0x00, val]);
+  board.io.sendI2CWriteRequest(OLED.ADDRESS, [control, val]);
 }
 
 function init() {
@@ -95,7 +103,7 @@ function init() {
   var i, initSeqLen = initSeq.length;
 
   for (i = 0; i < initSeqLen; i ++) {
-    sendI2CCmd(initSeq[i]);
+    writeI2C('cmd', initSeq[i]);
   }
 }
 
@@ -109,11 +117,11 @@ function display() {
       i, v;
 
   for (i = 0; i < displaySeqLen; i += 1) {
-    sendI2CCmd(displaySeq[i]);
+    writeI2C('cmd', displaySeq[i]);
   }
 
   for (v = 0; v < bufferLen; v += 1) {
-    board.io.sendI2CWriteRequest(OLED.ADDRESS, [0x40, buffer[v]]);
+    writeI2C('data', buffer[v]);
   }
 }
 
@@ -126,8 +134,8 @@ function dimDisplay(bool) {
     contrast = 0xCF;
   }
 
-  sendI2CCmd(OLED.SET_CONTRAST);
-  sendI2CCmd(contrast);
+  writeI2C('cmd', OLED.SET_CONTRAST);
+  writeI2C('cmd', contrast);
 }
 
 function clearDisplay() {
@@ -137,9 +145,9 @@ function clearDisplay() {
 
 function invertDisplay(bool) {
   if (bool) {
-    sendI2CCmd(OLED.INVERT_DISPLAY);
+    writeI2C('cmd', OLED.INVERT_DISPLAY);
   } else {
-    sendI2CCmd(OLED.NORMAL_DISPLAY);
+    writeI2C('cmd', OLED.NORMAL_DISPLAY);
   }
 }
 
@@ -153,7 +161,6 @@ board.on('ready', function() {
 
   buffer = adafruitLogo;
   display();
-
 
   //dimDisplay(true);
 
