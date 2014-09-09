@@ -117,6 +117,19 @@ function display() {
   }
 }
 
+function dimDisplay(bool) {
+  var contrast;
+
+  if (bool) {
+    contrast = 0; // Dimmed display
+  } else {
+    contrast = 0xCF;
+  }
+
+  sendI2CCmd(OLED.SET_CONTRAST);
+  sendI2CCmd(contrast);
+}
+
 function clearDisplay() {
   buffer = new Buffer(buffer.length);
   buffer.fill(0x00);
@@ -140,6 +153,9 @@ board.on('ready', function() {
 
   buffer = adafruitLogo;
   display();
+
+
+  //dimDisplay(true);
 
   // invert display
   //invertDisplay(true);
