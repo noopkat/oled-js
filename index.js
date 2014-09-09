@@ -53,6 +53,7 @@ OLED.EXTERNAL_VCC = false;
 OLED.MEMORY_MODE = 0x20;
 OLED.SEG_REMAP = 0xA0;
 OLED.COM_SCAN_DEC = 0xC8;
+OLED.COM_SCAN_INC = 0xC0;
 OLED.SET_COM_PINS = 0xDA;
 OLED.SET_CONTRAST = 0x81;
 OLED.SET_PRECHARGE = 0xd9;
@@ -62,8 +63,6 @@ OLED.NORMAL_DISPLAY = 0xA6;
 OLED.COLUMN_ADDR = 0x21;
 OLED.PAGE_ADDR = 0x22;
 OLED.INVERT_DISPLAY = 0xA7;
-
-function drawPixel(x, y, color) {}
 
 function sendI2CCmd(val) {
   // send control and actual val
@@ -82,8 +81,8 @@ function init() {
     OLED.SET_START_LINE,
     OLED.CHARGE_PUMP, 0x14, // charge pump val
     OLED.MEMORY_MODE, 0x00, // 0x0 act like ks0108
-    OLED.SEG_REMAP,
-    OLED.COM_SCAN_DEC,
+    OLED.SEG_REMAP, // screen orientation
+    OLED.COM_SCAN_INC, // screen orientation
     OLED.SET_COM_PINS, 0x02, // com pins val
     OLED.SET_CONTRAST, 0x8F, // contrast val
     OLED.SET_PRECHARGE, 0xF1, // precharge val
@@ -100,30 +99,27 @@ function init() {
   }
 }
 
-// currently displaying back to front since switching from firmata.js to johnny-five
 function display() {
   var displaySeq = [
     OLED.COLUMN_ADDR, 0, OLED.WIDTH - 1, // column start and end address 
     OLED.PAGE_ADDR, 0, 3 // page start and end address
   ];
-  var i, displaySeqLen = displaySeq.length;
+  var displaySeqLen = displaySeq.length,
+      bufferLen = buffer.length,
+      i, v;
 
-  for (i = 0; i < displaySeqLen; i ++) {
+  for (i = 0; i < displaySeqLen; i += 1) {
     sendI2CCmd(displaySeq[i]);
   }
 
-  for (var col = 0; col < OLED.WIDTH; col ++) {
-    for (var row = 0; row < OLED.HEIGHT / 8; row ++ ) {
-      var index = (col * (OLED.HEIGHT / 8)) + row;
-      board.io.sendI2CWriteRequest(OLED.ADDRESS, [0x40, buffer[index]]);
-    }
+  for (v = 0; v < bufferLen; v += 1) {
+    board.io.sendI2CWriteRequest(OLED.ADDRESS, [0x40, buffer[v]]);
   }
 }
 
 function clearDisplay() {
   buffer = new Buffer(buffer.length);
-  buffer.fill(0);
-  display();
+  buffer.fill(0x00);
 }
 
 function invertDisplay(bool) {
@@ -134,15 +130,14 @@ function invertDisplay(bool) {
   }
 }
 
+function drawPixel(x, y, color) {}
+
 board.on('ready', function() {
   console.log('I see you, board');
   
   // send setup sequence to OLED
   init();
 
-  clearDisplay();
-
-  // display buffer
   buffer = adafruitLogo;
   display();
 
