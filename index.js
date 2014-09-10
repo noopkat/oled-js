@@ -203,7 +203,7 @@ board.on('ready', function() {
     [1, 1, 'WHITE'],
     [1, 32, 'WHITE']
   ]);
-
+  
   display();
 
   // buffer = adafruitLogo;

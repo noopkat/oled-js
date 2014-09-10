@@ -15,7 +15,7 @@ Todo list:
 + ~~display~~
 + ~~clearDisplay~~
 + ~~dimDisplay~~
-+ drawPixel
++ ~~drawPixel~~
 + drawLine
 + drawCircle
 + drawRectangle
