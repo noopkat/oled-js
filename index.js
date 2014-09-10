@@ -1,8 +1,11 @@
 var five = require('johnny-five'),
     board = new five.Board();
 
-var buffer = [];
+// new blank buffer
+var buffer = new Buffer(512);
+buffer.fill(0x00);
 
+// example picture using just pixels, in the framebuffer size allowed (512)
 var adafruitLogo = [
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -38,6 +41,7 @@ var adafruitLogo = [
 0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 ];
 
+// create command buffers
 var OLED = {};
 OLED.HEIGHT = 32;
 OLED.WIDTH = 128;
@@ -64,6 +68,7 @@ OLED.COLUMN_ADDR = 0x21;
 OLED.PAGE_ADDR = 0x22;
 OLED.INVERT_DISPLAY = 0xA7;
 
+// writes both commands and data buffers to the OLED device
 function writeI2C(type, val) {
   var control;
   if (type === 'data') {
@@ -81,6 +86,7 @@ function init() {
   // enable i2C in firmata
   board.io.sendI2CConfig(0);
 
+  // set up the display so it knows what to do
   var initSeq = [
     OLED.DISPLAY_OFF,
     OLED.SET_DISPLAY_CLOCK_DIV, 0x80,
@@ -102,6 +108,7 @@ function init() {
 
   var i, initSeqLen = initSeq.length;
 
+  // write init seq commands
   for (i = 0; i < initSeqLen; i ++) {
     writeI2C('cmd', initSeq[i]);
   }
@@ -112,14 +119,17 @@ function display() {
     OLED.COLUMN_ADDR, 0, OLED.WIDTH - 1, // column start and end address 
     OLED.PAGE_ADDR, 0, 3 // page start and end address
   ];
+
   var displaySeqLen = displaySeq.length,
       bufferLen = buffer.length,
       i, v;
 
+  // send intro seq
   for (i = 0; i < displaySeqLen; i += 1) {
     writeI2C('cmd', displaySeq[i]);
   }
 
+  // write buffer data
   for (v = 0; v < bufferLen; v += 1) {
     writeI2C('data', buffer[v]);
   }
@@ -131,7 +141,7 @@ function dimDisplay(bool) {
   if (bool) {
     contrast = 0; // Dimmed display
   } else {
-    contrast = 0xCF;
+    contrast = 0xCF; // High contrast
   }
 
   writeI2C('cmd', OLED.SET_CONTRAST);
@@ -139,7 +149,8 @@ function dimDisplay(bool) {
 }
 
 function clearDisplay() {
-  buffer = new Buffer(buffer.length);
+  buffer = new Buffer(512);
+  // write black pixels
   buffer.fill(0x00);
 }
 
@@ -151,7 +162,33 @@ function invertDisplay(bool) {
   }
 }
 
-function drawPixel(x, y, color) {}
+function drawPixel(pixels) {
+  pixels.forEach(function(el) {
+    // return if the pixel is out of range
+    var x = el[0], y = el[1], color = el[2];
+    if (x > OLED.WIDTH || y > OLED.HEIGHT) return;
+
+    // thanks, Martin Richards
+    x -= 1; y -=1;
+    var byte = 0,
+        page = Math.floor(y / 8),
+        pageShift = 0x01 << (y - 8 * (y / 8));
+
+    // is the pixel on the first row of the page?
+    (page == 0) ? byte = x : byte = x + 128 * page; 
+
+    // colors! Well, monochrome.
+    switch (color) {
+      case 'WHITE': 
+        buffer[byte] |= pageShift; break;
+      case 'BLACK': 
+        buffer[byte] &= ~pageShift; break;
+    }
+
+    // sanity check
+    console.log('drawing a pixel at ' + x + ', ' + y);
+  });
+}
 
 board.on('ready', function() {
   console.log('I see you, board');
@@ -159,8 +196,18 @@ board.on('ready', function() {
   // send setup sequence to OLED
   init();
 
-  buffer = adafruitLogo;
+  // draw some test pixels in each corner limit
+  drawPixel([
+    [128, 1, 'WHITE'],
+    [128, 32, 'WHITE'],
+    [1, 1, 'WHITE'],
+    [1, 32, 'WHITE']
+  ]);
+
   display();
+
+  // buffer = adafruitLogo;
+  // display();
 
   //dimDisplay(true);
 
