@@ -19,7 +19,7 @@ Todo list:
 + drawLine
 + drawCircle
 + drawRectangle
-+ drawBitmap
++ ~~drawBitmap~~
 + scrollLeft
 + scrollRight
 + writeText
