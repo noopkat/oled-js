@@ -68,6 +68,13 @@ OLED.NORMAL_DISPLAY = 0xA6;
 OLED.COLUMN_ADDR = 0x21;
 OLED.PAGE_ADDR = 0x22;
 OLED.INVERT_DISPLAY = 0xA7;
+OLED.ACTIVATE_SCROLL = 0x2F;
+OLED.DEACTIVATE_SCROLL = 0x2E;
+OLED.SET_VERTICAL_SCROLL_AREA = 0xA3;
+OLED.RIGHT_HORIZONTAL_SCROLL = 0x26;
+OLED.LEFT_HORIZONTAL_SCROLL = 0x27;
+OLED.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL = 0x29;
+OLED.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL = 0x2A;
 
 // writes both commands and data buffers to the OLED device
 function writeI2C(type, val) {
@@ -204,6 +211,24 @@ function drawPixel(pixels) {
     // sanity check
     console.log(color + ' pixel at ' + x + ', ' + y);
   });
+
+}
+
+// activate a right handed scroll for rows start through stop
+function startscrollright(start, stop){
+  var cmdSeq = [
+    OLED.RIGHT_HORIZONTAL_SCROLL,
+    0X00, start,
+    0X00, stop,
+    0X00, 0XFF,
+    OLED.ACTIVATE_SCROLL
+  ];
+
+  var i, cmdSeqLen = cmdSeq.length;
+
+  for (i = 0; i < cmdSeqLen; i += 1) {
+    writeI2C('cmd', cmdSeq[i]);
+  }
 }
 
 board.on('ready', function() {
@@ -228,6 +253,7 @@ board.on('ready', function() {
       drawBitmap(image.data);
   });
 
+
   // buffer = adafruitLogo;
   // display();
 
@@ -235,6 +261,9 @@ board.on('ready', function() {
 
   // invert display
   invertDisplay(true);
+
+  // scroll right
+  //startscrollright(0x00, 0x0F);
 
   // clear display
   //clearDisplay();
