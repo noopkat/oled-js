@@ -1,4 +1,5 @@
 var five = require('johnny-five'),
+    pngparse = require('pngparse'),
     board = new five.Board();
 
 // new blank buffer
@@ -162,6 +163,20 @@ function invertDisplay(bool) {
   }
 }
 
+function drawBitmap(pixels) {
+  var x, y;
+  var pixelArray = [];
+  console.log(pixels.length);
+
+  for (var i = 0; i < pixels.length; i++) {
+    x = Math.floor(i % OLED.WIDTH) + 1;
+    y = Math.floor(i / OLED.WIDTH) + 1;
+    //console.log(x, y);
+    drawPixel([[x, y, pixels[i]]]);
+  }
+  display();
+}
+
 function drawPixel(pixels) {
   pixels.forEach(function(el) {
     // return if the pixel is out of range
@@ -172,21 +187,22 @@ function drawPixel(pixels) {
     x -= 1; y -=1;
     var byte = 0,
         page = Math.floor(y / 8),
-        pageShift = 0x01 << (y - 8 * (y / 8));
+        pageShift = 0x01 << (y - 8 * page);
 
     // is the pixel on the first row of the page?
     (page == 0) ? byte = x : byte = x + 128 * page; 
 
-    // colors! Well, monochrome.
-    switch (color) {
-      case 'WHITE': 
-        buffer[byte] |= pageShift; break;
-      case 'BLACK': 
-        buffer[byte] &= ~pageShift; break;
-    }
+      // colors! Well, monochrome.
+    
+      if (color === 'BLACK' || color === 0) {
+        buffer[byte] &= ~pageShift;
+      }
+      if (color === 'WHITE' || color > 0) {
+        buffer[byte] |= pageShift;
+      }
 
     // sanity check
-    console.log('drawing a pixel at ' + x + ', ' + y);
+    console.log(color + ' pixel at ' + x + ', ' + y);
   });
 }
 
@@ -196,15 +212,21 @@ board.on('ready', function() {
   // send setup sequence to OLED
   init();
 
+  //clearDisplay();
+  //display();
+
   // draw some test pixels in each corner limit
-  drawPixel([
-    [128, 1, 'WHITE'],
-    [128, 32, 'WHITE'],
-    [1, 1, 'WHITE'],
-    [1, 32, 'WHITE']
-  ]);
-  
-  display();
+  // drawPixel([
+  //   [128, 1, 'WHITE'],
+  //   [128, 32, 'WHITE'],
+  //   [128, 16, 'WHITE'],
+  //   [64, 16, 'WHITE']
+  // ]);
+  // display();
+
+  pngparse.parseFile(__dirname + '/bitmaps/noopkat-mono.png', function(err, image) {
+      drawBitmap(image.data);
+  });
 
   // buffer = adafruitLogo;
   // display();
@@ -212,7 +234,7 @@ board.on('ready', function() {
   //dimDisplay(true);
 
   // invert display
-  //invertDisplay(true);
+  invertDisplay(true);
 
   // clear display
   //clearDisplay();
