@@ -1,5 +1,6 @@
 var five = require('johnny-five'),
     pngparse = require('pngparse'),
+    floydSteinberg = require('../floyd-steinberg/floyd-steinberg'),
     board = new five.Board();
 
 // new blank buffer
@@ -75,6 +76,9 @@ OLED.RIGHT_HORIZONTAL_SCROLL = 0x26;
 OLED.LEFT_HORIZONTAL_SCROLL = 0x27;
 OLED.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL = 0x29;
 OLED.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL = 0x2A;
+// THIS GUY. THIS GUY HERE, might be the solution to a bunch of things
+//OLED.BUSY_FLAG = 0x80;
+//OLED.BUSY_FLAG = 0;
 
 // writes both commands and data buffers to the OLED device
 function writeI2C(type, val) {
@@ -88,6 +92,28 @@ function writeI2C(type, val) {
   }
   // send control and actual val
   board.io.sendI2CWriteRequest(OLED.ADDRESS, [control, val]);
+}
+
+// read a byte from the oled
+function readI2C(fn) {
+  board.sendI2CReadRequest(OLED.ADDRESS, 1, function(data) {
+    fn(data);
+  });
+}
+
+function waitUntilReady(callback) {
+  var done;
+  // TODO: attempt to use setImmediate
+  setTimeout(function tick() {
+    readI2C(function (byte) {
+      done = byte << 7;
+      if (done) {
+        callback();
+      } else {
+        setTimeout(tick, 0);
+      }
+    });
+  }, 0);
 }
 
 function init() {
@@ -123,24 +149,28 @@ function init() {
 }
 
 function display() {
-  var displaySeq = [
-    OLED.COLUMN_ADDR, 0, OLED.WIDTH - 1, // column start and end address 
-    OLED.PAGE_ADDR, 0, 3 // page start and end address
-  ];
+  // TODO: either keep this, or push asynchronous handling onto the consumer
+  waitUntilReady(function() {
+    var displaySeq = [
+      OLED.COLUMN_ADDR, 0, OLED.WIDTH - 1, // column start and end address 
+      OLED.PAGE_ADDR, 0, 3 // page start and end address
+    ];
 
-  var displaySeqLen = displaySeq.length,
-      bufferLen = buffer.length,
-      i, v;
+    var displaySeqLen = displaySeq.length,
+        bufferLen = buffer.length,
+        i, v;
 
-  // send intro seq
-  for (i = 0; i < displaySeqLen; i += 1) {
-    writeI2C('cmd', displaySeq[i]);
-  }
+    // send intro seq
+    for (i = 0; i < displaySeqLen; i += 1) {
+      writeI2C('cmd', displaySeq[i]);
+    }
 
-  // write buffer data
-  for (v = 0; v < bufferLen; v += 1) {
-    writeI2C('data', buffer[v]);
-  }
+    // write buffer data
+    for (v = 0; v < bufferLen; v += 1) {
+      writeI2C('data', buffer[v]);
+    }
+
+  });
 }
 
 function dimDisplay(bool) {
@@ -160,6 +190,9 @@ function clearDisplay() {
   buffer = new Buffer(512);
   // write black pixels
   buffer.fill(0x00);
+
+  // allow chaining
+  return this;
 }
 
 function invertDisplay(bool) {
@@ -178,10 +211,12 @@ function drawBitmap(pixels) {
   for (var i = 0; i < pixels.length; i++) {
     x = Math.floor(i % OLED.WIDTH) + 1;
     y = Math.floor(i / OLED.WIDTH) + 1;
-    //console.log(x, y);
+
     drawPixel([[x, y, pixels[i]]]);
   }
-  display();
+  // I like the idea of allowing chaining for display()
+  // TODO: either keep this, or push asynchronous handling onto the consumer
+  return this;
 }
 
 function drawPixel(pixels) {
@@ -212,23 +247,33 @@ function drawPixel(pixels) {
     console.log(color + ' pixel at ' + x + ', ' + y);
   });
 
+  // I like the idea of allowing chaining for display()
+  // TODO: either keep this, or push asynchronous handling onto the consumer
+  return this;
 }
 
 // activate a right handed scroll for rows start through stop
-function startscrollright(start, stop){
-  var cmdSeq = [
-    OLED.RIGHT_HORIZONTAL_SCROLL,
-    0X00, start,
-    0X00, stop,
-    0X00, 0XFF,
-    OLED.ACTIVATE_SCROLL
-  ];
+function startscrollright(start, stop) {
+  // TODO: either keep this, or push asynchronous handling onto the consumer
+  waitUntilReady(function() {
+    var cmdSeq = [
+      OLED.RIGHT_HORIZONTAL_SCROLL,
+      0X00, start,
+      0X00, stop,
+      0X00, 0XFF,
+      OLED.ACTIVATE_SCROLL
+    ];
 
-  var i, cmdSeqLen = cmdSeq.length;
+    var i, cmdSeqLen = cmdSeq.length;
 
-  for (i = 0; i < cmdSeqLen; i += 1) {
-    writeI2C('cmd', cmdSeq[i]);
-  }
+    for (i = 0; i < cmdSeqLen; i += 1) {
+      writeI2C('cmd', cmdSeq[i]);
+    }
+  });
+}
+
+function stopscroll() {
+  writeI2C('cmd', OLED.DEACTIVATE_SCROLL);
 }
 
 board.on('ready', function() {
@@ -237,26 +282,36 @@ board.on('ready', function() {
   // send setup sequence to OLED
   init();
 
-  //clearDisplay();
-  //display();
+  // clear first just in case
+  clearDisplay();
 
   // draw some test pixels in each corner limit
-  // drawPixel([
-  //   [128, 1, 'WHITE'],
-  //   [128, 32, 'WHITE'],
-  //   [128, 16, 'WHITE'],
-  //   [64, 16, 'WHITE']
-  // ]);
-  // display();
+  drawPixel([
+    [128, 1, 'WHITE'],
+    [128, 32, 'WHITE'],
+    [128, 16, 'WHITE'],
+    [64, 16, 'WHITE']
+  ]).display();
 
-  pngparse.parseFile(__dirname + '/bitmaps/noopkat-mono.png', function(err, image) {
-      drawBitmap(image.data);
-  });
+  // pass in an existing monochrome indexed image, then display
+  // pngparse.parseFile(__dirname + '/bitmaps/noopkat-mono.png', function(err, image) {
+  //   drawBitmap(image.data).display();
+  // });
 
+  // pass in an rgb image, and use floydsteinberg dithering algorithm to convert to mono, then display
+  // var monoimage;  
+  // pngparse.parseFile(__dirname + '/bitmaps/noopkat-mono.png', function(err, image) {
+  //     // dithering is optional
+  //     monoimage = floydSteinberg(image);
+  //     // send pixels to drawBitmap method and display
+  //     drawBitmap(monoimage.data).display();
+  // });
 
+  // assign exisiting image buffer and display
   // buffer = adafruitLogo;
   // display();
 
+  // dim the display
   //dimDisplay(true);
 
   // invert display
