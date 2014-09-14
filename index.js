@@ -246,12 +246,26 @@ function drawPixel(pixels) {
       }
 
     // sanity check
-    //console.log(color + ' pixel at ' + x + ', ' + y);
+    // console.log(color + ' pixel at ' + x + ', ' + y);
   });
 
   // I like the idea of allowing chaining for display()
   // TODO: either keep this, or push asynchronous handling onto the consumer
   return this;
+}
+
+// using Bresenham's line algorithm
+function drawLine(x0, y0, x1, y1) {
+  var dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+  var dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+  var err = (dx > dy ? dx : -dy) / 2;
+  while (true) {
+    drawPixel([[x0, y0, 1]]);
+    if (x0 === x1 && y0 === y1) break;
+    var e2 = err;
+    if (e2 > -dx) {err -= dy; x0 += sx;}
+    if (e2 < dy) {err += dx; y0 += sy;}
+  }
 }
 
 // activate a right handed scroll for rows start through stop
@@ -297,10 +311,16 @@ board.on('ready', function() {
   // ]).display();
 
   // testing out my new module
-  pngtolcd(__dirname + '/bitmaps/parrot-tiny.png', true, function(err, bitmapbuf) {
-      buffer = bitmapbuf;
-      display();
-  });
+  // pngtolcd(__dirname + '/bitmaps/parrot-tiny.png', true, function(err, bitmapbuf) {
+  //     buffer = bitmapbuf;
+  //     display();
+  // });
+
+  drawLine(1, 1, 128, 32);
+  drawLine(64, 16, 128, 16);
+  drawLine(1, 10, 40, 10);
+  drawLine(64, 0, 64, 32);
+  display();
 
   // /pass in an existing monochrome indexed image, then display
   // pngparse.parseFile(__dirname + '/bitmaps/parrot-index.png', function(err, image) {
@@ -319,7 +339,7 @@ board.on('ready', function() {
   //invertDisplay(true);
 
   // scroll right
-  //startscrollright(0x00, 0x0F);
+  // startscrollright(0x00, 0x0F);
 
   // clear display
   //clearDisplay();
