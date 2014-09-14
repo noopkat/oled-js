@@ -1,9 +1,11 @@
 johnny-five-oled-example
 ========================
 
+(currently a work in progress)
+
 sending ze buffers over I2C
 
-(Currently a work in progress)
+works with all sizes of SSD1306 OLED/PLED Segment/Common Driver with Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf))
 
 1. `npm install johnny-five`
 2. Upload standard firmata lib to an Arduino of choice
@@ -17,8 +19,8 @@ Todo list:
 + ~~dimDisplay~~
 + ~~drawPixel~~
 + drawLine
-+ drawCircle
-+ drawRectangle
++ ?drawCircle
++ ?drawRectangle
 + ~~drawBitmap~~
 + scrollLeft
 + scrollRight
