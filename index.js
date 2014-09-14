@@ -1,6 +1,7 @@
 var five = require('johnny-five'),
     pngparse = require('pngparse'),
     floydSteinberg = require('../floyd-steinberg/floyd-steinberg'),
+    pngtolcd = require('../png-to-lcd/png-to-lcd'),
     board = new five.Board();
 
 // new blank buffer
@@ -96,7 +97,7 @@ function writeI2C(type, val) {
 
 // read a byte from the oled
 function readI2C(fn) {
-  board.sendI2CReadRequest(OLED.ADDRESS, 1, function(data) {
+  board.io.sendI2CReadRequest(OLED.ADDRESS, 1, function(data) {
     fn(data);
   });
 }
@@ -151,6 +152,7 @@ function init() {
 function display() {
   // TODO: either keep this, or push asynchronous handling onto the consumer
   waitUntilReady(function() {
+    console.log('display is now ready!')
     var displaySeq = [
       OLED.COLUMN_ADDR, 0, OLED.WIDTH - 1, // column start and end address 
       OLED.PAGE_ADDR, 0, 3 // page start and end address
@@ -232,7 +234,7 @@ function drawPixel(pixels) {
         pageShift = 0x01 << (y - 8 * page);
 
     // is the pixel on the first row of the page?
-    (page == 0) ? byte = x : byte = x + 128 * page; 
+    (page == 0) ? byte = x : byte = x + OLED.WIDTH * page; 
 
       // colors! Well, monochrome.
     
@@ -244,7 +246,7 @@ function drawPixel(pixels) {
       }
 
     // sanity check
-    console.log(color + ' pixel at ' + x + ', ' + y);
+    //console.log(color + ' pixel at ' + x + ', ' + y);
   });
 
   // I like the idea of allowing chaining for display()
@@ -284,27 +286,26 @@ board.on('ready', function() {
 
   // clear first just in case
   clearDisplay();
+  display();
 
   // draw some test pixels in each corner limit
-  drawPixel([
-    [128, 1, 'WHITE'],
-    [128, 32, 'WHITE'],
-    [128, 16, 'WHITE'],
-    [64, 16, 'WHITE']
-  ]).display();
+  // drawPixel([
+  //   [128, 1, 'WHITE'],
+  //   [128, 32, 'WHITE'],
+  //   [128, 16, 'WHITE'],
+  //   [64, 16, 'WHITE']
+  // ]).display();
 
-  // pass in an existing monochrome indexed image, then display
-  // pngparse.parseFile(__dirname + '/bitmaps/noopkat-mono.png', function(err, image) {
-  //   drawBitmap(image.data).display();
-  // });
+  // testing out my new module
+  pngtolcd(__dirname + '/bitmaps/parrot-tiny.png', true, function(err, bitmapbuf) {
+      buffer = bitmapbuf;
+      display();
+  });
 
-  // pass in an rgb image, and use floydsteinberg dithering algorithm to convert to mono, then display
-  // var monoimage;  
-  // pngparse.parseFile(__dirname + '/bitmaps/noopkat-mono.png', function(err, image) {
-  //     // dithering is optional
-  //     monoimage = floydSteinberg(image);
-  //     // send pixels to drawBitmap method and display
-  //     drawBitmap(monoimage.data).display();
+  // /pass in an existing monochrome indexed image, then display
+  // pngparse.parseFile(__dirname + '/bitmaps/parrot-index.png', function(err, image) {
+  //   drawBitmap(image.data);
+  //   display();
   // });
 
   // assign exisiting image buffer and display
@@ -315,7 +316,7 @@ board.on('ready', function() {
   //dimDisplay(true);
 
   // invert display
-  invertDisplay(true);
+  //invertDisplay(true);
 
   // scroll right
   //startscrollright(0x00, 0x0F);
