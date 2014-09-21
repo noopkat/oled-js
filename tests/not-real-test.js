@@ -20,7 +20,7 @@ function test(oled) {
 
   // clear first just in case
   oled.clearDisplay();
-  oled.display();
+  oled.update();
 
   // draw some test pixels in each corner limit
   // oled.drawPixel([
@@ -29,31 +29,31 @@ function test(oled) {
   //   [128, 16, 'WHITE'],
   //   [64, 16, 'WHITE']
   // ]);
-  // oled.display();
+  // oled.update();
 
   oled.dimDisplay(true);
 
   // // testing out my new module
   pngtolcd(__dirname + '/images/cat.png', true, function(err, bitmapbuf) {
       oled.buffer = bitmapbuf;
-      oled.display();
+      oled.update();
   });
 
   // oled.drawLine(1, 1, 128, 32);
   // oled.drawLine(64, 16, 128, 16);
   // oled.drawLine(1, 10, 40, 10);
   // oled.drawLine(64, 0, 64, 32);
-  // oled.display();
+  // oled.update();
 
   // /pass in an existing monochrome indexed image, then display
   // pngparse.parseFile(__dirname + '/bitmaps/parrot-index.png', function(err, image) {
   //   oled.drawBitmap(image.data);
-  //   oled.display();
+  //   oled.update();
   // });
 
   // assign exisiting image buffer and display
   // oled.buffer = adafruitLogo;
-  // oled.display();
+  // oled.update();
 
   // dim the display
   //oled.dimDisplay(true);

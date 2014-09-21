@@ -108,7 +108,7 @@ Oled.prototype._waitUntilReady = function(callback) {
   }, 0);
 }
 
-Oled.prototype.display = function() {
+Oled.prototype.update = function() {
   var oled = this;
   // TODO: either keep this, or push asynchronous handling onto the consumer
   oled._waitUntilReady(function() {
