@@ -6,6 +6,7 @@
   "dependencies": {
     "johnny-five": "~0.8.9",
     "pngparse": "~2.0.1",
+    "png-to-lcd": "~1.0.2"
   },
   "devDependencies": {},
   "scripts": {
