@@ -1,6 +1,5 @@
 var five = require('johnny-five'),
     pngparse = require('pngparse'),
-    floydSteinberg = require('floyd-steinberg'),
     pngtolcd = require('png-to-lcd'),
     board = new five.Board(),
     Oled = require('../oled');
