@@ -34,7 +34,7 @@ function test(oled) {
   oled.dimDisplay(true);
 
   // // testing out my new module
-  pngtolcd(__dirname + '/bitmaps/cat.png', true, function(err, bitmapbuf) {
+  pngtolcd(__dirname + '/images/cat.png', true, function(err, bitmapbuf) {
       oled.buffer = bitmapbuf;
       oled.display();
   });
