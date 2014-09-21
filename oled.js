@@ -1,10 +1,4 @@
-var five = require('johnny-five'),
-    pngparse = require('pngparse'),
-    floydSteinberg = require('floyd-steinberg'),
-    pngtolcd = require('png-to-lcd'),
-    board = new five.Board();
-
-var Oled = function(width, height, address) {
+var Oled = function(board, width, height, address) {
 
   // create command buffers
   this.HEIGHT = height;
@@ -43,8 +37,10 @@ var Oled = function(width, height, address) {
   this.buffer = new Buffer((this.WIDTH * this.HEIGHT) / 8);
   this.buffer.fill(0x00);
 
+  this.board = board;
+
   // enable i2C in firmata
-  board.io.sendI2CConfig(0);
+  this.board.io.sendI2CConfig(0);
 
   // set up the display so it knows what to do
   var initSeq = [
@@ -86,12 +82,12 @@ Oled.prototype._writeI2C = function(type, val) {
     return;
   }
   // send control and actual val
-  board.io.sendI2CWriteRequest(this.ADDRESS, [control, val]);
+  this.board.io.sendI2CWriteRequest(this.ADDRESS, [control, val]);
 }
 
 // read a byte from the oled
 Oled.prototype._readI2C = function(fn) {
-  board.io.sendI2CReadRequest(this.ADDRESS, 1, function(data) {
+  this.board.io.sendI2CReadRequest(this.ADDRESS, 1, function(data) {
     fn(data);
   });
 }
@@ -245,3 +241,4 @@ Oled.prototype.stopscroll = function() {
   this._writeI2C('cmd', this.DEACTIVATE_SCROLL);
 }
 
+module.exports = Oled;

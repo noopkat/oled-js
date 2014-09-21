@@ -1,10 +1,22 @@
+var five = require('johnny-five'),
+    pngparse = require('pngparse'),
+    floydSteinberg = require('floyd-steinberg'),
+    pngtolcd = require('png-to-lcd'),
+    board = new five.Board(),
+    Oled = require('../oled');
+
 // testing features
 board.on('ready', function() {
-  console.log('I see you, board');
-  
-  // create new oled instance
-  var oled = new Oled(128, 32, 0x3C);
+  console.log('Connected to Arduino, ready.');
 
+  // passing in board as a temp strategy.
+  var oled = new Oled(board, 128, 32, 0x3C);
+  test(oled);
+});
+
+// sequence of test displays
+function test(oled) {
+  // create new oled instance
   oled.stopscroll();
 
   // clear first just in case
@@ -55,5 +67,4 @@ board.on('ready', function() {
 
   // clear display
   //oled.clearDisplay();
-
-});  
+}
