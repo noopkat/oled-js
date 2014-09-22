@@ -34,10 +34,14 @@ function test(oled) {
   oled.dimDisplay(true);
 
   // // testing out my new module
-  pngtolcd(__dirname + '/images/cat.png', true, function(err, bitmapbuf) {
-      oled.buffer = bitmapbuf;
-      oled.update();
-  });
+  // pngtolcd(__dirname + '/images/cat.png', true, function(err, bitmapbuf) {
+  //     oled.buffer = bitmapbuf;
+  //     oled.update();
+  // });
+  
+  // testing fonts
+  oled.buffer = [0x3E, 0x41, 0x41, 0x51, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7E, 0x11, 0x11, 0x11, 0x7E, 0x7F, 0x49, 0x49, 0x49, 0x36]; // G AB
+  oled.update();
 
   // oled.drawLine(1, 1, 128, 32);
   // oled.drawLine(64, 16, 128, 16);
