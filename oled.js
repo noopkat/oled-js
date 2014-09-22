@@ -33,6 +33,9 @@ var Oled = function(board, width, height, address) {
   this.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL = 0x29;
   this.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL = 0x2A;
 
+  this.cursor_x = 0;
+  this.cursor_y = 0;
+
   // new blank buffer
   this.buffer = new Buffer((this.WIDTH * this.HEIGHT) / 8);
   this.buffer.fill(0x00);
@@ -98,6 +101,7 @@ Oled.prototype._waitUntilReady = function(callback) {
   // TODO: attempt to use setImmediate
   setTimeout(function tick() {
     oled._readI2C(function(byte) {
+      // this needs an & 1
       done = byte << 7;
       if (done) {
         callback();
@@ -106,6 +110,57 @@ Oled.prototype._waitUntilReady = function(callback) {
       }
     });
   }, 0);
+}
+
+Oled.prototype.setCursor = function(x, y) {
+  this.cursor_x = x;
+  this.cursor_y = y;
+}
+
+Oled.prototype.writeString = function(font, size, string, color) {
+  var stringArr = string.split(''),
+      len = stringArr.length,
+      offset = this.cursor_x;
+
+  for (var i = 0; i < len; i += 1) {
+    var charBuf = this._findCharBuf(font, stringArr[i]);
+    var charBytes = this._readCharBytes(charBuf);
+    this._drawChar(charBytes);
+    offset += font.width + 3;
+    this.setCursor(offset, this.cursor_y);
+  }
+}
+
+Oled.prototype._drawChar = function(byteArray) {
+  for (var i = 0; i < byteArray.length; i += 1) {
+    var x = this.cursor_x + i;
+    for (var j = 0; j < 8; j += 1) {
+      var y = this.cursor_y + j;
+      var color = byteArray[i][j];
+      this.drawPixel([[x, y, color]]);
+    }
+  }
+}
+
+Oled.prototype._readCharBytes = function(byteArray) {
+  var bitArr = [],
+      bitCharArr = [];
+  for (var i = 0; i < byteArray.length; i += 1) {
+    var byte = byteArray[i];
+    for (var j = 0; j < 8; j += 1) {
+      var bit = byte >> j & 1;
+      bitArr.push(bit);
+    }
+    bitCharArr.push(bitArr);
+    bitArr = [];
+  }
+  return bitCharArr;
+}
+
+Oled.prototype._findCharBuf = function(font, c) {
+  var cBufPos = font.lookup.indexOf(c) * font.width;
+  var cBuf = font.fontData.slice(cBufPos, cBufPos + font.width);
+  return cBuf;
 }
 
 Oled.prototype.update = function() {
@@ -198,7 +253,7 @@ Oled.prototype.drawPixel = function(pixels) {
       }
 
     // sanity check
-    // console.log(color + ' pixel at ' + x + ', ' + y);
+    //console.log(color + ' pixel at ' + x + ', ' + y);
   });
 }
 

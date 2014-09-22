@@ -2,7 +2,8 @@ var five = require('johnny-five'),
     pngparse = require('pngparse'),
     pngtolcd = require('png-to-lcd'),
     board = new five.Board(),
-    Oled = require('../oled');
+    Oled = require('../oled'),
+    font = require('./buffers/system-font-data2');
 
 // testing features
 board.on('ready', function() {
@@ -40,7 +41,17 @@ function test(oled) {
   // });
   
   // testing fonts
-  oled.buffer = [0x3E, 0x41, 0x41, 0x51, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7E, 0x11, 0x11, 0x11, 0x7E, 0x7F, 0x49, 0x49, 0x49, 0x36]; // G AB
+  //oled.buffer = [0x3E, 0x41, 0x41, 0x51, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7E, 0x11, 0x11, 0x11, 0x7E, 0x7F, 0x49, 0x49, 0x49, 0x36]; // G AB
+  //oled.update();
+
+  // var buf = new Buffer([0x41]);
+  // oled._readByte(buf[0]);
+  console.log(font);
+
+  oled.setCursor(1, 1);
+  oled.writeString(font, 1, "CATS & DOGS", 255);
+  oled.setCursor(1, 17);
+  oled.writeString(font, 1, "ARE PRETTY RAD.", 255);
   oled.update();
 
   // oled.drawLine(1, 1, 128, 32);
