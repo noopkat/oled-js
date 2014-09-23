@@ -21,8 +21,8 @@ Todo list:
 + ~~drawPixel~~
 + ~~drawLine~~
 + ?drawCircle
-+ ?drawRectangle
++ ~~drawRectangle~~
 + ~~drawBitmap~~
-+ scrollLeft
-+ scrollRight
++ ~~scrollLeft~~
++ ~~scrollRight~~
 + writeText
