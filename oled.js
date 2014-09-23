@@ -101,11 +101,12 @@ Oled.prototype._waitUntilReady = function(callback) {
   // TODO: attempt to use setImmediate
   setTimeout(function tick() {
     oled._readI2C(function(byte) {
-      // this needs an & 1
-      done = byte << 7;
-      if (done) {
+      // read the busy byte in the response
+      busy = byte >> 7 & 1;
+      if (!busy) {
         callback();
       } else {
+        console.log('I\'m busy!');
         setTimeout(tick, 0);
       }
     });
