@@ -121,24 +121,29 @@ Oled.prototype.setCursor = function(x, y) {
 Oled.prototype.writeString = function(font, size, string, color) {
   var stringArr = string.split(''),
       len = stringArr.length,
-      offset = this.cursor_x;
+      offset = this.cursor_x,
+      size = size || 1;
 
   for (var i = 0; i < len; i += 1) {
     var charBuf = this._findCharBuf(font, stringArr[i]);
     var charBytes = this._readCharBytes(charBuf);
-    this._drawChar(charBytes);
-    offset += font.width + 3;
+    this._drawChar(charBytes, size);
+    offset += (font.width * size) + size + 1;
     this.setCursor(offset, this.cursor_y);
   }
 }
 
-Oled.prototype._drawChar = function(byteArray) {
+Oled.prototype._drawChar = function(byteArray, size) {
+  var x = this.cursor_x;
+  var y = this.cursor_y;
   for (var i = 0; i < byteArray.length; i += 1) {
-    var x = this.cursor_x + i;
     for (var j = 0; j < 8; j += 1) {
-      var y = this.cursor_y + j;
       var color = byteArray[i][j];
-      this.drawPixel([[x, y, color]]);
+      if (size === 1) {
+        this.drawPixel([[x+i, y+j, color]]);
+      } else {
+        this.fillRect(x+(i*size), y+(j*size), size, size, color);
+      }
     }
   }
 }
@@ -259,13 +264,13 @@ Oled.prototype.drawPixel = function(pixels) {
 }
 
 // using Bresenham's line algorithm
-Oled.prototype.drawLine = function(x0, y0, x1, y1) {
+Oled.prototype.drawLine = function(x0, y0, x1, y1, color) {
   var dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1,
       dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1,
       err = (dx > dy ? dx : -dy) / 2;
 
   while (true) {
-    this.drawPixel([[x0, y0, 1]]);
+    this.drawPixel([[x0, y0, color]]);
 
     if (x0 === x1 && y0 === y1) break;
 
@@ -273,6 +278,12 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1) {
 
     if (e2 > -dx) {err -= dy; x0 += sx;}
     if (e2 < dy) {err += dx; y0 += sy;}
+  }
+}
+
+Oled.prototype.fillRect = function(x, y, w, h, color) {
+  for (var i = x; i < x + w; i += 1) {
+    this.drawLine(i, y, i, y+h-1, color);
   }
 }
 

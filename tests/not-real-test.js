@@ -46,18 +46,20 @@ function test(oled) {
 
   // var buf = new Buffer([0x41]);
   // oled._readByte(buf[0]);
-  console.log(font);
 
   oled.setCursor(1, 1);
-  oled.writeString(font, 1, "CATS & DOGS", 255);
-  oled.setCursor(1, 17);
-  oled.writeString(font, 1, "ARE PRETTY RAD.", 255);
+  oled.writeString(font, 4, 'CATS!!', 1);
+  //oled.setCursor(1, 13);
+  //oled.writeString(font, 1, 'ARE PRETTY RAD.', 255);
   oled.update();
 
-  // oled.drawLine(1, 1, 128, 32);
-  // oled.drawLine(64, 16, 128, 16);
-  // oled.drawLine(1, 10, 40, 10);
-  // oled.drawLine(64, 0, 64, 32);
+  // oled.fillRect(1, 1, 10, 20, 1);
+  // oled.update();
+
+  // oled.drawLine(1, 1, 128, 32, 1);
+  // oled.drawLine(64, 16, 128, 16, 1);
+  // oled.drawLine(1, 10, 40, 10, 1);
+  // oled.drawLine(64, 0, 64, 32, 1);
   // oled.update();
 
   // /pass in an existing monochrome indexed image, then display
@@ -77,7 +79,7 @@ function test(oled) {
   //oled.invertDisplay(true);
 
   // scroll right
-  //oled.startscrollright(0x00, 0x0F);
+  oled.startscrollright(0x00, 0x0F);
 
   // clear display
   //oled.clearDisplay();
