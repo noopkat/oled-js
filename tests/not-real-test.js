@@ -79,7 +79,7 @@ function test(oled) {
   //oled.invertDisplay(true);
 
   // scroll right
-  oled.startscrollright(0x00, 0x0F);
+  oled.startscroll('left diagonal', 0x00, 0x0F);
 
   // clear display
   //oled.clearDisplay();

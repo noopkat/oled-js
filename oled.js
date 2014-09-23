@@ -311,17 +311,47 @@ Oled.prototype.fillRect = function(x, y, w, h, color) {
 }
 
 // activate a right handed scroll for rows start through stop
-Oled.prototype.startscrollright = function(start, stop) {
-  var oled = this;
+Oled.prototype.startscroll = function(dir, start, stop) {
+  var oled = this,
+  //start = '0x' + start.toString(16),
+  //stop = '0x' + stop.toString(16),
+  scrollHeader,
+  cmdSeq = [];
+
+  switch (dir) {
+    case 'right':
+      cmdSeq.push(oled.RIGHT_HORIZONTAL_SCROLL); break;
+    case 'left':
+      cmdSeq.push(oled.LEFT_HORIZONTAL_SCROLL); break;
+    // TODO: left diag and right diag not working yet 
+    case 'left diagonal':
+      cmdSeq.push(
+        oled.SET_VERTICAL_SCROLL_AREA, 0x00,
+        oled.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL,
+        oled.HEIGHT
+      );
+      break;
+    // TODO: left diag and right diag not working yet
+    case 'right diagonal':
+      cmdSeq.push(
+        oled.SET_VERTICAL_SCROLL_AREA, 0x00,
+        oled.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL,
+        oled.HEIGHT
+      );
+      break;
+  }
+
   // TODO: either keep this, or push asynchronous handling onto the consumer
   this._waitUntilReady(function() {
-    var cmdSeq = [
-      oled.RIGHT_HORIZONTAL_SCROLL,
-      0X00, start,
-      0X00, stop,
-      0X00, 0XFF,
+    cmdSeq.push(
+      0x00, start,
+      0x00, stop,
+      // TODO: these need to change when diag
+      0x00, 0xFF,
       oled.ACTIVATE_SCROLL
-    ];
+    );
+
+    console.log(cmdSeq);
 
     var i, cmdSeqLen = cmdSeq.length;
 
