@@ -48,7 +48,7 @@ function test(oled) {
   // oled._readByte(buf[0]);
 
   oled.setCursor(1, 1);
-  oled.writeString(font, 4, 'CATS!!', 1);
+  oled.writeString(font, 1, 'CATS!! abcdefgjhsdjsahdkajsdfkljfjkhefuehfjnbdsjfnsd', 1, true);
   //oled.setCursor(1, 13);
   //oled.writeString(font, 1, 'ARE PRETTY RAD.', 255);
   oled.update();
@@ -79,7 +79,7 @@ function test(oled) {
   //oled.invertDisplay(true);
 
   // scroll right
-  oled.startscroll('left diagonal', 0x00, 0x0F);
+  //oled.startscroll('left diagonal', 0x00, 0x0F);
 
   // clear display
   //oled.clearDisplay();

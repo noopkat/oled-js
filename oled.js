@@ -119,11 +119,12 @@ Oled.prototype.setCursor = function(x, y) {
   this.cursor_y = y;
 }
 
-Oled.prototype.writeString = function(font, size, string, color) {
+Oled.prototype.writeString = function(font, size, string, color, wrap) {
   var stringArr = string.split(''),
       len = stringArr.length,
       // start x offset at cursor pos
-      offset = this.cursor_x;
+      offset = this.cursor_x,
+      oled = this;
 
   // loop through the array of each char to draw
   for (var i = 0; i < len; i += 1) {
@@ -135,6 +136,13 @@ Oled.prototype.writeString = function(font, size, string, color) {
     this._drawChar(charBytes, size);
     // calc new x position for the next char, add a touch of spacing too
     offset += (font.width * size) + size + 1;
+    console.log(offset, oled.WIDTH - font.width);
+    // not working yet
+    if (wrap && (offset >= (oled.WIDTH - font.width - 1))) {
+      console.log('wrapping');
+      offset = 0;
+      this.cursor_y += (font.height * size) + size + 1; 
+    }
     // set the 'cursor' for the next char to be drawn, then loop again for next char
     this.setCursor(offset, this.cursor_y);
   }
