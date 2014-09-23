@@ -74,7 +74,7 @@ var Oled = function(board, width, height, address) {
 }
 
 
-// writes both commands and data buffers to the this device
+// writes both commands and data buffers to this device
 Oled.prototype._writeI2C = function(type, val) {
   var control;
   if (type === 'data') {
@@ -104,6 +104,7 @@ Oled.prototype._waitUntilReady = function(callback) {
       // read the busy byte in the response
       busy = byte >> 7 & 1;
       if (!busy) {
+      // if not busy, it's ready for callback
         callback();
       } else {
         console.log('I\'m busy!');
@@ -121,27 +122,39 @@ Oled.prototype.setCursor = function(x, y) {
 Oled.prototype.writeString = function(font, size, string, color) {
   var stringArr = string.split(''),
       len = stringArr.length,
-      offset = this.cursor_x,
-      size = size || 1;
+      // start x offset at cursor pos
+      offset = this.cursor_x;
 
+  // loop through the array of each char to draw
   for (var i = 0; i < len; i += 1) {
+    // look up the position of the char, pull out the buffer slice
     var charBuf = this._findCharBuf(font, stringArr[i]);
+    // read the bits in the bytes that make up the char
     var charBytes = this._readCharBytes(charBuf);
+    // draw the entire character
     this._drawChar(charBytes, size);
+    // calc new x position for the next char, add a touch of spacing too
     offset += (font.width * size) + size + 1;
+    // set the 'cursor' for the next char to be drawn, then loop again for next char
     this.setCursor(offset, this.cursor_y);
   }
 }
 
 Oled.prototype._drawChar = function(byteArray, size) {
-  var x = this.cursor_x;
-  var y = this.cursor_y;
+  // take your positions...
+  var x = this.cursor_x,
+      y = this.cursor_y;
+
+  // loop through the byte array containing the hexes for the char
   for (var i = 0; i < byteArray.length; i += 1) {
     for (var j = 0; j < 8; j += 1) {
+      // pull color out
       var color = byteArray[i][j];
+      // standard font size
       if (size === 1) {
         this.drawPixel([[x+i, y+j, color]]);
       } else {
+        // MATH! Calculating pixel size multiplier to primitively scale the font
         this.fillRect(x+(i*size), y+(j*size), size, size, color);
       }
     }
@@ -151,20 +164,28 @@ Oled.prototype._drawChar = function(byteArray, size) {
 Oled.prototype._readCharBytes = function(byteArray) {
   var bitArr = [],
       bitCharArr = [];
+  // loop through each byte supplied for a char
   for (var i = 0; i < byteArray.length; i += 1) {
+    // set current byte
     var byte = byteArray[i];
+    // read each byte
     for (var j = 0; j < 8; j += 1) {
+      // shift bits right until all are read
       var bit = byte >> j & 1;
       bitArr.push(bit);
     }
+    // push to array containing flattened bit sequence
     bitCharArr.push(bitArr);
+    // clear bits for next byte
     bitArr = [];
   }
   return bitCharArr;
 }
 
 Oled.prototype._findCharBuf = function(font, c) {
+  // use the lookup array as a ref to find where the current char bytes start
   var cBufPos = font.lookup.indexOf(c) * font.width;
+  // slice just the current char's bytes out of the fontData array and return
   var cBuf = font.fontData.slice(cBufPos, cBufPos + font.width);
   return cBuf;
 }
@@ -215,9 +236,9 @@ Oled.prototype.clearDisplay = function() {
 
 Oled.prototype.invertDisplay = function(bool) {
   if (bool) {
-    this._writeI2C('cmd', this.INVERT_DISPLAY);
+    this._writeI2C('cmd', this.INVERT_DISPLAY); // invert
   } else {
-    this._writeI2C('cmd', this.NORMAL_DISPLAY);
+    this._writeI2C('cmd', this.NORMAL_DISPLAY); // non invert
   }
 }
 
@@ -282,7 +303,9 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color) {
 }
 
 Oled.prototype.fillRect = function(x, y, w, h, color) {
+  // one iteration for each column of the rectangle
   for (var i = x; i < x + w; i += 1) {
+    // draws a vert line
     this.drawLine(i, y, i, y+h-1, color);
   }
 }
@@ -309,7 +332,7 @@ Oled.prototype.startscrollright = function(start, stop) {
 }
 
 Oled.prototype.stopscroll = function() {
-  this._writeI2C('cmd', this.DEACTIVATE_SCROLL);
+  this._writeI2C('cmd', this.DEACTIVATE_SCROLL); // stahp
 }
 
 module.exports = Oled;
