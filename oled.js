@@ -120,31 +120,51 @@ Oled.prototype.setCursor = function(x, y) {
 }
 
 Oled.prototype.writeString = function(font, size, string, color, wrap) {
-  var stringArr = string.split(''),
-      len = stringArr.length,
+  var wordArr = string.split(' '),
+      len = wordArr.length,
       // start x offset at cursor pos
       offset = this.cursor_x,
-      oled = this;
+      oled = this,
+      padding = 0, letspace = 1, leading = 2;
 
-  // loop through the array of each char to draw
-  for (var i = 0; i < len; i += 1) {
-    // look up the position of the char, pull out the buffer slice
-    var charBuf = this._findCharBuf(font, stringArr[i]);
-    // read the bits in the bytes that make up the char
-    var charBytes = this._readCharBytes(charBuf);
-    // draw the entire character
-    this._drawChar(charBytes, size);
-    // calc new x position for the next char, add a touch of spacing too
-    offset += (font.width * size) + size + 1;
-    console.log(offset, oled.WIDTH - font.width);
-    // not working yet
-    if (wrap && (offset >= (oled.WIDTH - font.width - 1))) {
-      console.log('wrapping');
-      offset = 0;
-      this.cursor_y += (font.height * size) + size + 1; 
+  // loop through words
+  for (var w = 0; w < len; w += 1) {
+    // put the word space back in
+    wordArr[w] += ' ';
+    var stringArr = wordArr[w].split(''),
+        slen = stringArr.length,
+        compare = (font.width * size * slen) + (size * (len -1));
+
+    // wrap words if necessary
+    if (wrap && len > 1 && (offset >= (oled.WIDTH - compare)) ) {
+      console.log('wrapping word');
+      offset = 1;
+      this.cursor_y += (font.height * size) + size + leading;
+      this.setCursor(offset, this.cursor_y);
     }
-    // set the 'cursor' for the next char to be drawn, then loop again for next char
-    this.setCursor(offset, this.cursor_y);
+
+    // loop through the array of each char to draw
+    for (var i = 0; i < slen; i += 1) {
+      // look up the position of the char, pull out the buffer slice
+      var charBuf = this._findCharBuf(font, stringArr[i]);
+      // read the bits in the bytes that make up the char
+      var charBytes = this._readCharBytes(charBuf);
+      // draw the entire character
+      this._drawChar(charBytes, size);
+
+      // calc new x position for the next char, add a touch of padding too if it's a non space char
+      padding = (stringArr[i] === ' ') ? 0 : size + letspace;
+      offset += (font.width * size) + padding;
+
+      // wrap letters if necessary
+      if (wrap && (offset >= (oled.WIDTH - font.width - letspace))) {
+        console.log('wrapping letter');
+        offset = 1;
+        this.cursor_y += (font.height * size) + size + leading; 
+      }
+      // set the 'cursor' for the next char to be drawn, then loop again for next char
+      this.setCursor(offset, this.cursor_y);
+    }
   }
 }
 
@@ -157,13 +177,18 @@ Oled.prototype._drawChar = function(byteArray, size) {
   for (var i = 0; i < byteArray.length; i += 1) {
     for (var j = 0; j < 8; j += 1) {
       // pull color out
-      var color = byteArray[i][j];
+      var color = byteArray[i][j],
+          xpos, ypos;
       // standard font size
       if (size === 1) {
-        this.drawPixel([[x+i, y+j, color]]);
+        xpos = x + i;
+        ypos = y + j;
+        this.drawPixel([[xpos, ypos, color]]);
       } else {
         // MATH! Calculating pixel size multiplier to primitively scale the font
-        this.fillRect(x+(i*size), y+(j*size), size, size, color);
+        xpos = x + (i * size);
+        ypos = y + (j * size);
+        this.fillRect(xpos, ypos, size, size, color);
       }
     }
   }

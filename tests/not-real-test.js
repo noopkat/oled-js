@@ -48,7 +48,8 @@ function test(oled) {
   // oled._readByte(buf[0]);
 
   oled.setCursor(1, 1);
-  oled.writeString(font, 1, 'CATS!! abcdefgjhsdjsahdkajsdfkljfjkhefuehfjnbdsjfnsd', 1, true);
+  oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
+  //oled.writeString(font, 1, 'abcdefghijklmnopqrstuvwxyz', 1, true);
   //oled.setCursor(1, 13);
   //oled.writeString(font, 1, 'ARE PRETTY RAD.', 255);
   oled.update();
