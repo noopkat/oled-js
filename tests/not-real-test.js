@@ -3,7 +3,7 @@ var five = require('johnny-five'),
     pngtolcd = require('png-to-lcd'),
     board = new five.Board(),
     Oled = require('../oled'),
-    font = require('./buffers/system-font-data');
+    font = require('oled-font-5x7');
 
 // testing features
 board.on('ready', function() {
