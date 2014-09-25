@@ -1,11 +1,13 @@
-johnny-five-oled-example
+johnny-five-oled
 ========================
 
 (currently a work in progress)
 
-sending ze buffers over I2C
+## What is this?
 
-works with all sizes of SSD1306 OLED/PLED Segment/Common Driver with Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf))
+This repo is a library compatible with Rick Waldron's johnny-five project. It adds support for I2C compatible OLED screens. It works with all sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
+
+## Install 
 
 1. `git clone`
 2. `npm install`
