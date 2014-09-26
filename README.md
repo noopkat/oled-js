@@ -58,6 +58,23 @@ Usage:
 oled.dimDisplay(true|false);
 ```
 
+### turnOffDisplay
+Turns the display off. Calling update() afterwards is not required.
+
+Usage:
+```javascript
+oled.turnOffDisplay();
+```
+
+### turnOnDisplay
+Turns the display on. Calling update() afterwards is not required.
+
+Usage:
+```javascript
+oled.turnOnDisplay();
+```
+
+
 ### drawPixel
 Draws a pixel at a specified position on the display. This method takes one argument: a multi-dimensional array containing either one or more sets of pixels. 
 
@@ -102,8 +119,8 @@ TODO
 ## Features to implement
 + ~~display~~
 + ~~clearDisplay~~
-+ turnOffDisplay
-+ turnOnDisplay
++ ~~turnOffDisplay~~
++ ~~turnOnDisplay~~
 + ~~dimDisplay~~
 + ~~drawPixel~~
 + ~~drawLine~~

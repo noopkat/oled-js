@@ -262,6 +262,14 @@ Oled.prototype.dimDisplay = function(bool) {
   this._writeI2C('cmd', contrast);
 }
 
+Oled.prototype.turnOffDisplay = function() {
+  this._writeI2C('cmd', this.DISPLAY_OFF);
+}
+
+Oled.prototype.turnOnDisplay = function() {
+  this._writeI2C('cmd', this.DISPLAY_ON);
+}
+
 Oled.prototype.clearDisplay = function() {
   // write off pixels
   this.buffer.fill(0x00);
