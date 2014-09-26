@@ -16,7 +16,7 @@ This repo is a library compatible with Rick Waldron's [johnny-five](https://gith
 (A4 -> SDL, A5 -> SCL if using an Uno, look up your board if not Uno)
 5. `node tests/not-real-test.js` (just a demo right now)
 
-## Usage
+## Example
 
 ```javascript
 var five = require('johnny-five'),
@@ -34,16 +34,49 @@ board.on('ready', function() {
 ## Methods
 
 ### update
-TODO
+Sends the entire buffer in its current state to the oled display, effectively syncing the two.
+
+Usage:
+```javascript
+oled.update();
+```
 
 ### clearDisplay
-TODO
+Fills the buffer with 'off' pixels (0x00). You'll need to call update() after this to send the buffer content update to the display.
+
+Usage:
+```javascript
+oled.clearDisplay();
+oled.update();
+```
 
 ### dimDisplay
-TODO
+Lowers the contrast on the display. This method takes one argument, a boolean. True for dimming, false to restore normal contrast. Calling update() afterwards is not required.
+
+Usage:
+```javascript
+oled.dimDisplay(true|false);
+```
 
 ### drawPixel
-TODO
+Draws a pixel at a specified position on the display. This method takes one argument: a multi-dimensional array containing either one or more sets of pixels. 
+
+Each pixel needs an x position, a y position, and a color. Colors can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
+
+Call update() when done.
+
+Usage:
+```javascript
+// draws 4 white pixels total
+// format: [x, y, color]
+oled.drawPixel([
+	[128, 1, 1],
+	[128, 32, 1],
+	[128, 16, 1],
+	[64, 16, 1]
+]);
+oled.update();
+```
 
 ### drawLine
 TODO
@@ -66,7 +99,7 @@ TODO
 ### writeString
 TODO
 
-## Todo feature list
+## Features to implement
 + ~~display~~
 + ~~clearDisplay~~
 + turnOffDisplay
