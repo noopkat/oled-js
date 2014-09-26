@@ -5,7 +5,7 @@ johnny-five-oled
 
 ## What is this?
 
-This repo is a library compatible with Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C compatible OLED screens. It works with all sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
+This repo is a library compatible with Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C compatible monochrome OLED screens. Works with all sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
 
 ## Install 
 
@@ -56,6 +56,14 @@ Lowers the contrast on the display. This method takes one argument, a boolean. T
 Usage:
 ```javascript
 oled.dimDisplay(true|false);
+```
+
+### invertDisplay
+Inverts the pixels on the display. Black becomes white, white becomes black. This method takes one argument, a boolean. True for inverted state, false to restore normal pixel colors. Calling update() afterwards is not required.
+
+Usage:
+```javascript
+oled.invertDisplay(true|false);
 ```
 
 ### turnOffDisplay
