@@ -119,7 +119,7 @@ Oled.prototype.setCursor = function(x, y) {
   this.cursor_y = y;
 }
 
-Oled.prototype.writeString = function(font, size, string, color, wrap) {
+Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
   var wordArr = string.split(' '),
       len = wordArr.length,
       // start x offset at cursor pos
@@ -150,7 +150,7 @@ Oled.prototype.writeString = function(font, size, string, color, wrap) {
       // read the bits in the bytes that make up the char
       var charBytes = this._readCharBytes(charBuf);
       // draw the entire character
-      this._drawChar(charBytes, size);
+      this._drawChar(charBytes, size, sync);
 
       // calc new x position for the next char, add a touch of padding too if it's a non space char
       padding = (stringArr[i] === ' ') ? 0 : size + letspace;
@@ -168,7 +168,7 @@ Oled.prototype.writeString = function(font, size, string, color, wrap) {
   }
 }
 
-Oled.prototype._drawChar = function(byteArray, size) {
+Oled.prototype._drawChar = function(byteArray, size, sync) {
   // take your positions...
   var x = this.cursor_x,
       y = this.cursor_y;
@@ -183,12 +183,12 @@ Oled.prototype._drawChar = function(byteArray, size) {
       if (size === 1) {
         xpos = x + i;
         ypos = y + j;
-        this.drawPixel([[xpos, ypos, color]]);
+        this.drawPixel([[xpos, ypos, color]], sync);
       } else {
         // MATH! Calculating pixel size multiplier to primitively scale the font
         xpos = x + (i * size);
         ypos = y + (j * size);
-        this.fillRect(xpos, ypos, size, size, color);
+        this.fillRect(xpos, ypos, size, size, color, sync);
       }
     }
   }
@@ -249,35 +249,6 @@ Oled.prototype.update = function() {
   });
 }
 
-// this is going to bust my brain. Current WIP.
-Oled.prototype._updatePartial = function(startCol, endCol, startRow, endRow) {
-  var oled = this;
-  // TODO: either keep this, or push asynchronous handling onto the consumer
-  oled._waitUntilReady(function() {
-    var displaySeq = [
-      oled.COLUMN_ADDR, startCol, endCol, // column start and end address 
-      oled.PAGE_ADDR, Math.floor(startRow / 8), Math.floor(endRow / 8) // page start and end address
-    ];
-
-    var displaySeqLen = displaySeq.length,
-        bufferLen = oled.buffer.length,
-        i, v;
-
-    // send intro seq
-    for (i = 0; i < displaySeqLen; i += 1) {
-      oled._writeI2C('cmd', displaySeq[i]);
-    }
-
-    // something needs to go in here to find exact point via bit shifting to narrow down position in page to update
-    
-    // write buffer data
-    for (v = 0; v < bufferLen; v += 1) {
-      oled._writeI2C('data', oled.buffer[v]);
-    }
-
-  });
-}
-
 Oled.prototype.dimDisplay = function(bool) {
   var contrast;
 
@@ -299,9 +270,14 @@ Oled.prototype.turnOnDisplay = function() {
   this._writeI2C('cmd', this.DISPLAY_ON);
 }
 
-Oled.prototype.clearDisplay = function() {
+Oled.prototype.clearDisplay = function(sync) {
+  var immed = (typeof sync === 'undefined') ? true : sync;
   // write off pixels
   this.buffer.fill(0x00);
+
+  if (immed) {
+    this.update();
+  }
 }
 
 Oled.prototype.invertDisplay = function(bool) {
@@ -315,22 +291,22 @@ Oled.prototype.invertDisplay = function(bool) {
 Oled.prototype.drawBitmap = function(pixels, sync) {
   var x, y,
       pixelArray = [];
-  var immed = (typeof sync === 'undefined') ? true : sync;
 
   for (var i = 0; i < pixels.length; i++) {
     x = Math.floor(i % this.WIDTH) + 1;
     y = Math.floor(i / this.WIDTH) + 1;
 
-    this.drawPixel([[x, y, pixels[i]]]);
-  }
-
-  if (immed) {
-    this.update();
+    this.drawPixel([[x, y, pixels[i]]], sync);
   }
 }
 
-Oled.prototype.drawPixel = function(pixels) {
+Oled.prototype.drawPixel = function(pixels, sync) {
+  //test
+  console.log('drawPixel running');
+  
   var oled = this;
+  var immed = (typeof sync === 'undefined') ? true : sync;
+
   pixels.forEach(function(el) {
     // return if the pixel is out of range
     var x = el[0], y = el[1], color = el[2];
@@ -345,17 +321,49 @@ Oled.prototype.drawPixel = function(pixels) {
     // is the pixel on the first row of the page?
     (page == 0) ? byte = x : byte = x + oled.WIDTH * page; 
 
-      // colors! Well, monochrome.
-    
-      if (color === 'BLACK' || color === 0) {
-        oled.buffer[byte] &= ~pageShift;
-      }
-      if (color === 'WHITE' || color > 0) {
-        oled.buffer[byte] |= pageShift;
-      }
+    // colors! Well, monochrome. 
+    if (color === 'BLACK' || color === 0) {
+      oled.buffer[byte] &= ~pageShift;
+    }
+    if (color === 'WHITE' || color > 0) {
+      oled.buffer[byte] |= pageShift;
+    }
+
+    if (immed) {
+      this._updatePixel(x, page, oled.buffer[byte]);
+    }
 
     // sanity check
     //console.log(color + ' pixel at ' + x + ', ' + y);
+  });
+}
+
+Oled.prototype._updatePixel = function(col, page, byte) {
+  // test
+  console.log('_updatePixel running');
+
+  var oled = this;
+
+  // TODO: either keep this, or push asynchronous handling onto the consumer
+  oled._waitUntilReady(function() {
+    var displaySeq = [
+      oled.COLUMN_ADDR, col, col, // column start and end address 
+      oled.PAGE_ADDR, page, page // page start and end address
+    ];
+
+    var displaySeqLen = displaySeq.length,
+        bufferLen = oled.buffer.length,
+        i, v;
+
+    // send intro seq
+    for (i = 0; i < displaySeqLen; i += 1) {
+      oled._writeI2C('cmd', displaySeq[i]);
+    }
+
+    // write the whole byte to update the pixel 
+    // (this still cuts down rendering time to 1/64 of rendering the entire buffer)
+    oled._writeI2C('data', byte);
+
   });
 }
 
@@ -369,7 +377,7 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
 
 
   while (true) {
-    this.drawPixel([[x0, y0, color]]);
+    this.drawPixel([[x0, y0, color]], sync);
 
     if (x0 === x1 && y0 === y1) break;
 
@@ -378,18 +386,13 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
     if (e2 > -dx) {err -= dy; x0 += sx;}
     if (e2 < dy) {err += dx; y0 += sy;}
   }
-
-  if (immed) {
-    this.update();
-  }
 }
 
 Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
-  var immed = (typeof sync === 'undefined') ? true : sync;
   // one iteration for each column of the rectangle
   for (var i = x; i < x + w; i += 1) {
     // draws a vert line
-    this.drawLine(i, y, i, y+h-1, color);
+    this.drawLine(i, y, i, y+h-1, color, sync);
   }
   if (immed) {
     this.update();
