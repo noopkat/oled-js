@@ -14,7 +14,9 @@ This repo is a library compatible with Rick Waldron's [johnny-five](https://gith
 3. Upload standard firmata lib to an Arduino of choice
 4. hook up I2C compatible oled to the Arduino  
 (A4 -> SDL, A5 -> SCL if using an Uno, look up your board if not Uno)
-5. `node tests/not-real-test.js` (just a demo right now)
+5. `node tests/demo.js` (look in the file for examples of all method calls)
+
+![fritzing diagram](https://raw.githubusercontent.com/noopkat/johnny-five-oled/master/docs/fritzing/i2C_128x32_Uno.png)
 
 ## Example
 
