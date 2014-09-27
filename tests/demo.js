@@ -21,7 +21,7 @@ function test(oled) {
 
   // clear first just in case
   oled.clearDisplay();
-  oled.update();
+  //oled.update();
 
   // draw some test pixels in each corner limit
   // oled.drawPixel([
@@ -48,11 +48,11 @@ function test(oled) {
   // oled._readByte(buf[0]);
 
   oled.setCursor(1, 1);
-  oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
-  //oled.writeString(font, 1, 'abcdefghijklmnopqrstuvwxyz', 1, true);
+  //oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
+  oled.writeString(font, 1, 'abcdefghijklmnopqrstuvwxyz', 1, true, false);
   //oled.setCursor(1, 13);
   //oled.writeString(font, 1, 'ARE PRETTY RAD.', 255);
-  oled.update();
+  //oled.update();
 
   // oled.fillRect(1, 1, 10, 20, 1);
   // oled.update();
@@ -61,7 +61,7 @@ function test(oled) {
   // oled.drawLine(64, 16, 128, 16, 1);
   // oled.drawLine(1, 10, 40, 10, 1);
   // oled.drawLine(64, 0, 64, 32, 1);
-  // oled.update();
+  //oled.update();
 
   // /pass in an existing monochrome indexed image, then display
   // pngparse.parseFile(__dirname + '/bitmaps/parrot-index.png', function(err, image) {

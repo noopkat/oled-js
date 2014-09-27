@@ -40,6 +40,8 @@ var Oled = function(board, width, height, address) {
   this.buffer = new Buffer((this.WIDTH * this.HEIGHT) / 8);
   this.buffer.fill(0x00);
 
+  this.dirtyBytes = [];
+
   this.board = board;
 
   // enable i2C in firmata
@@ -305,7 +307,7 @@ Oled.prototype.drawPixel = function(pixels, sync) {
   console.log('drawPixel running');
   
   var oled = this;
-  var immed = (typeof sync === 'undefined') ? true : sync;
+  var immed = (typeof sync === 'undefined') ? false : sync;
 
   pixels.forEach(function(el) {
     // return if the pixel is out of range
@@ -329,13 +331,23 @@ Oled.prototype.drawPixel = function(pixels, sync) {
       oled.buffer[byte] |= pageShift;
     }
 
-    if (immed) {
-      this._updatePixel(x, page, oled.buffer[byte]);
+    // push byte to dirty if not already there
+    if (dirtyBytes.indexOf(byte) === -1) {
+      dirtyBytes.push(byte);
     }
+
+    // if (immed) {
+    //   oled._updatePixel(x, page, oled.buffer[byte]);
+    // }
 
     // sanity check
     //console.log(color + ' pixel at ' + x + ', ' + y);
   });
+
+  if (immed) {
+    oled._updateDirtyBytes(dirtyBytes);
+  }
+
 }
 
 Oled.prototype._updatePixel = function(col, page, byte) {
@@ -345,15 +357,14 @@ Oled.prototype._updatePixel = function(col, page, byte) {
   var oled = this;
 
   // TODO: either keep this, or push asynchronous handling onto the consumer
-  oled._waitUntilReady(function() {
+ // oled._waitUntilReady(function() {
     var displaySeq = [
       oled.COLUMN_ADDR, col, col, // column start and end address 
       oled.PAGE_ADDR, page, page // page start and end address
     ];
 
     var displaySeqLen = displaySeq.length,
-        bufferLen = oled.buffer.length,
-        i, v;
+        i;
 
     // send intro seq
     for (i = 0; i < displaySeqLen; i += 1) {
@@ -364,17 +375,49 @@ Oled.prototype._updatePixel = function(col, page, byte) {
     // (this still cuts down rendering time to 1/64 of rendering the entire buffer)
     oled._writeI2C('data', byte);
 
-  });
+ // });
+}
+
+// looks at dirty bytes, and sends the updated byte to the display
+Oled.prototype._updateDirtyBytes = function(byteArray) {
+  var oled = this;
+  var blen = byteArray.length, i,
+      displaySeq = [];
+
+  // iterate through dirty bytes
+  for (var i = 0; i < blen; i += 1) {
+
+    var byte = byteArray = byteArray[i];
+    var col = Math.floor(byte / this.WIDTH);
+    var page = Math.floor(byte / 8);
+
+    displaySeq = [
+      oled.COLUMN_ADDR, col, col, // column start and end address 
+      oled.PAGE_ADDR, page, page // page start and end address
+    ];
+
+    var displaySeqLen = displaySeq.length, v;
+    
+    // send intro seq
+    for (v = 0; v < displaySeqLen; v += 1) {
+      oled._writeI2C('cmd', displaySeq[i]);
+    }
+    // send byte, then move on to next byte
+    this._writeI2C('data', oled.buffer[byte]);
+  }
+
+  // now that all bytes are synced, reset dirty state
+  oled.dirtyBytes = [];
 }
 
 // using Bresenham's line algorithm
 Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
-  var immed = (typeof sync === 'undefined') ? true : sync;
 
   var dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1,
       dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1,
       err = (dx > dy ? dx : -dy) / 2;
 
+  console.log(sync);
 
   while (true) {
     this.drawPixel([[x0, y0, color]], sync);
@@ -393,9 +436,6 @@ Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
   for (var i = x; i < x + w; i += 1) {
     // draws a vert line
     this.drawLine(i, y, i, y+h-1, color, sync);
-  }
-  if (immed) {
-    this.update();
   }
 }
 
