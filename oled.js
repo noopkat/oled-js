@@ -282,6 +282,29 @@ Oled.prototype.clearDisplay = function(sync) {
   }
 }
 
+Oled.prototype.altClearDisplay = function(sync) {
+  var immed = (typeof sync === 'undefined') ? true : sync;
+  // write off pixels
+  //this.buffer.fill(0x00);
+
+  for (var i = 0; i < oled.buffer.length; i += 1) {
+    if (oled.buffer[i] !=== 0x00) {
+      oled.buffer[i] = 0x00;
+
+      if (dirtyBytes.indexOf(i) === -1) {
+        dirtyBytes.push(i);
+      } 
+
+    }
+  }
+
+  oled._updateDirtyBytes(dirtyBytes);
+
+  // if (immed) {
+  //   this.update();
+  // }
+}
+
 Oled.prototype.invertDisplay = function(bool) {
   if (bool) {
     this._writeI2C('cmd', this.INVERT_DISPLAY); // invert
@@ -307,7 +330,7 @@ Oled.prototype.drawPixel = function(pixels, sync) {
   console.log('drawPixel running');
   
   var oled = this;
-  var immed = (typeof sync === 'undefined') ? false : sync;
+  var immed = (typeof sync === 'undefined') ? true : sync;
 
   pixels.forEach(function(el) {
     // return if the pixel is out of range
@@ -384,9 +407,21 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
   var blen = byteArray.length, i,
       displaySeq = [];
 
+  // check to see if this will even save time
+  if (byteArray.length > (oled.buffer.length / 3) {
+    // just call regular update at this stage, saves on bytes sent
+    oled.update();
+    // now that all bytes are synced, reset dirty state
+    oled.dirtyBytes = [];
+
+    return;
+  }
+
   // iterate through dirty bytes
   for (var i = 0; i < blen; i += 1) {
+    console.log('looping through dirty bytes');
 
+    
     var byte = byteArray = byteArray[i];
     var col = Math.floor(byte / this.WIDTH);
     var page = Math.floor(byte / 8);
