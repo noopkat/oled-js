@@ -122,6 +122,7 @@ Oled.prototype.setCursor = function(x, y) {
 }
 
 Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
+  var immed = (typeof sync === 'undefined') ? true : sync;
   var wordArr = string.split(' '),
       len = wordArr.length,
       // start x offset at cursor pos
@@ -152,7 +153,7 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
       // read the bits in the bytes that make up the char
       var charBytes = this._readCharBytes(charBuf);
       // draw the entire character
-      this._drawChar(charBytes, size, sync);
+      this._drawChar(charBytes, size, false);
 
       // calc new x position for the next char, add a touch of padding too if it's a non space char
       padding = (stringArr[i] === ' ') ? 0 : size + letspace;
@@ -167,6 +168,10 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
       // set the 'cursor' for the next char to be drawn, then loop again for next char
       this.setCursor(offset, this.cursor_y);
     }
+  }
+  if (immed) {
+    //console.log(this.dirtyBytes);
+    this._updateDirtyBytes(this.dirtyBytes);
   }
 }
 
@@ -185,7 +190,7 @@ Oled.prototype._drawChar = function(byteArray, size, sync) {
       if (size === 1) {
         xpos = x + i;
         ypos = y + j;
-        this.drawPixel([[xpos, ypos, color]], sync);
+        this.drawPixel([[xpos, ypos, color]], false);
       } else {
         // MATH! Calculating pixel size multiplier to primitively scale the font
         xpos = x + (i * size);
@@ -286,19 +291,16 @@ Oled.prototype.altClearDisplay = function(sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
   // write off pixels
   //this.buffer.fill(0x00);
-
-  for (var i = 0; i < oled.buffer.length; i += 1) {
-    if (oled.buffer[i] !=== 0x00) {
-      oled.buffer[i] = 0x00;
-
-      if (dirtyBytes.indexOf(i) === -1) {
-        dirtyBytes.push(i);
+  for (var i = 0; i < this.buffer.length; i += 1) {
+    if (this.buffer[i] !== 0x00) {
+      this.buffer[i] = 0x00;
+      if (this.dirtyBytes.indexOf(i) === -1) {
+        this.dirtyBytes.push(i);
       } 
-
     }
   }
 
-  oled._updateDirtyBytes(dirtyBytes);
+  this._updateDirtyBytes(this.dirtyBytes);
 
   // if (immed) {
   //   this.update();
@@ -326,9 +328,7 @@ Oled.prototype.drawBitmap = function(pixels, sync) {
 }
 
 Oled.prototype.drawPixel = function(pixels, sync) {
-  //test
-  console.log('drawPixel running');
-  
+
   var oled = this;
   var immed = (typeof sync === 'undefined') ? true : sync;
 
@@ -337,14 +337,14 @@ Oled.prototype.drawPixel = function(pixels, sync) {
     var x = el[0], y = el[1], color = el[2];
     if (x > oled.WIDTH || y > oled.HEIGHT) return;
 
-    // thanks, Martin Richards
+    // thanks, Martin Richards.
     x -= 1; y -=1;
     var byte = 0,
         page = Math.floor(y / 8),
         pageShift = 0x01 << (y - 8 * page);
 
     // is the pixel on the first row of the page?
-    (page == 0) ? byte = x : byte = x + oled.WIDTH * page; 
+    (page == 0) ? byte = x : byte = x + (oled.WIDTH * page); 
 
     // colors! Well, monochrome. 
     if (color === 'BLACK' || color === 0) {
@@ -355,8 +355,9 @@ Oled.prototype.drawPixel = function(pixels, sync) {
     }
 
     // push byte to dirty if not already there
-    if (dirtyBytes.indexOf(byte) === -1) {
-      dirtyBytes.push(byte);
+    if (oled.dirtyBytes.indexOf(byte) === -1) {
+      console.log(byte);
+      oled.dirtyBytes.push(byte);
     }
 
     // if (immed) {
@@ -368,38 +369,39 @@ Oled.prototype.drawPixel = function(pixels, sync) {
   });
 
   if (immed) {
-    oled._updateDirtyBytes(dirtyBytes);
+    console.log('pixels are drawing immediately');
+    oled._updateDirtyBytes(oled.dirtyBytes);
   }
 
 }
 
-Oled.prototype._updatePixel = function(col, page, byte) {
-  // test
-  console.log('_updatePixel running');
+// Oled.prototype._updatePixel = function(col, page, byte) {
+//   // test
+//   console.log('_updatePixel running');
 
-  var oled = this;
+//   var oled = this;
 
-  // TODO: either keep this, or push asynchronous handling onto the consumer
- // oled._waitUntilReady(function() {
-    var displaySeq = [
-      oled.COLUMN_ADDR, col, col, // column start and end address 
-      oled.PAGE_ADDR, page, page // page start and end address
-    ];
+//   // TODO: either keep this, or push asynchronous handling onto the consumer
+//  // oled._waitUntilReady(function() {
+//     var displaySeq = [
+//       oled.COLUMN_ADDR, col, col, // column start and end address 
+//       oled.PAGE_ADDR, page, page // page start and end address
+//     ];
 
-    var displaySeqLen = displaySeq.length,
-        i;
+//     var displaySeqLen = displaySeq.length,
+//         i;
 
-    // send intro seq
-    for (i = 0; i < displaySeqLen; i += 1) {
-      oled._writeI2C('cmd', displaySeq[i]);
-    }
+//     // send intro seq
+//     for (i = 0; i < displaySeqLen; i += 1) {
+//       oled._writeI2C('cmd', displaySeq[i]);
+//     }
 
-    // write the whole byte to update the pixel 
-    // (this still cuts down rendering time to 1/64 of rendering the entire buffer)
-    oled._writeI2C('data', byte);
+//     // write the whole byte to update the pixel 
+//     // (this still cuts down rendering time to 1/64 of rendering the entire buffer)
+//     oled._writeI2C('data', byte);
 
- // });
-}
+//  // });
+// }
 
 // looks at dirty bytes, and sends the updated byte to the display
 Oled.prototype._updateDirtyBytes = function(byteArray) {
@@ -407,40 +409,46 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
   var blen = byteArray.length, i,
       displaySeq = [];
 
+  console.log('_updateDirtyBytes', blen);
+
   // check to see if this will even save time
-  if (byteArray.length > (oled.buffer.length / 3) {
-    // just call regular update at this stage, saves on bytes sent
-    oled.update();
+  if (blen > (oled.buffer.length / 7)) {
+    console.log('things are just too dirty: ', oled.dirtyBytes.length);
     // now that all bytes are synced, reset dirty state
     oled.dirtyBytes = [];
+    // just call regular update at this stage, saves on bytes sent
+    oled.update();
 
-    return;
-  }
+    //return;
+  } else {
 
-  // iterate through dirty bytes
-  for (var i = 0; i < blen; i += 1) {
-    console.log('looping through dirty bytes');
+  //oled._waitUntilReady(function() {
+    // iterate through dirty bytes
+    for (var i = 0; i < blen; i += 1) {
 
-    
-    var byte = byteArray = byteArray[i];
-    var col = Math.floor(byte / this.WIDTH);
-    var page = Math.floor(byte / 8);
+      var byte = byteArray[i];
+      var page = Math.floor(byte / oled.WIDTH);
+      var col = Math.floor(byte % oled.WIDTH); 
+      
+      console.log(i, col, page);
 
-    displaySeq = [
-      oled.COLUMN_ADDR, col, col, // column start and end address 
-      oled.PAGE_ADDR, page, page // page start and end address
-    ];
+      var displaySeq = [
+        oled.COLUMN_ADDR, col, col, // column start and end address 
+        oled.PAGE_ADDR, page, page // page start and end address
+      ];
 
-    var displaySeqLen = displaySeq.length, v;
-    
-    // send intro seq
-    for (v = 0; v < displaySeqLen; v += 1) {
-      oled._writeI2C('cmd', displaySeq[i]);
+      var displaySeqLen = displaySeq.length, v;
+      
+      // send intro seq
+      for (v = 0; v < displaySeqLen; v += 1) {
+        oled._writeI2C('cmd', displaySeq[v]);
+      }
+      // send byte, then move on to next byte
+      this._writeI2C('data', oled.buffer[byte]);
+      oled.buffer[byte];
     }
-    // send byte, then move on to next byte
-    this._writeI2C('data', oled.buffer[byte]);
+  //});
   }
-
   // now that all bytes are synced, reset dirty state
   oled.dirtyBytes = [];
 }

@@ -17,22 +17,22 @@ board.on('ready', function() {
 // sequence of test displays
 function test(oled) {
   // create new oled instance
-  oled.stopscroll();
+  //oled.stopscroll();
 
   // clear first just in case
-  oled.clearDisplay();
+  //oled.clearDisplay();
   //oled.update();
 
   // draw some test pixels in each corner limit
-  // oled.drawPixel([
-  //   [128, 1, 'WHITE'],
-  //   [128, 32, 'WHITE'],
-  //   [128, 16, 'WHITE'],
-  //   [64, 16, 'WHITE']
-  // ]);
+  oled.drawPixel([
+    [128, 1, 1],
+    [128, 32, 1],
+    [128, 16, 1],
+    [64, 16, 1]
+  ]);
   // oled.update();
 
-  oled.dimDisplay(true);
+  //oled.dimDisplay(true);
 
   // // testing out my new module
   // pngtolcd(__dirname + '/images/cat.png', true, function(err, bitmapbuf) {
@@ -47,12 +47,15 @@ function test(oled) {
   // var buf = new Buffer([0x41]);
   // oled._readByte(buf[0]);
 
-  oled.setCursor(1, 1);
-  //oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
-  oled.writeString(font, 1, 'abcdefghijklmnopqrstuvwxyz', 1, true, false);
-  //oled.setCursor(1, 13);
-  //oled.writeString(font, 1, 'ARE PRETTY RAD.', 255);
   //oled.update();
+  oled.setCursor(1, 17);
+  //oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
+  //oled.writeString(font, 1, 'abcdefghijklmnopqrstuvwxyz', 1, true, false);
+  //oled.setCursor(1, 13);
+  //oled.writeString(font, 1, 'pigs', 1, true, true);
+  //oled.update();
+
+  //oled.altClearDisplay();
 
   // oled.fillRect(1, 1, 10, 20, 1);
   // oled.update();
