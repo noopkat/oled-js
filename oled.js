@@ -277,17 +277,17 @@ Oled.prototype.turnOnDisplay = function() {
   this._writeI2C('cmd', this.DISPLAY_ON);
 }
 
+// Oled.prototype.clearDisplay = function(sync) {
+//   var immed = (typeof sync === 'undefined') ? true : sync;
+//   // write off pixels
+//   this.buffer.fill(0x00);
+
+//   if (immed) {
+//     this.update();
+//   }
+// }
+
 Oled.prototype.clearDisplay = function(sync) {
-  var immed = (typeof sync === 'undefined') ? true : sync;
-  // write off pixels
-  this.buffer.fill(0x00);
-
-  if (immed) {
-    this.update();
-  }
-}
-
-Oled.prototype.altClearDisplay = function(sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
   // write off pixels
   //this.buffer.fill(0x00);
@@ -299,12 +299,9 @@ Oled.prototype.altClearDisplay = function(sync) {
       } 
     }
   }
-
-  this._updateDirtyBytes(this.dirtyBytes);
-
-  // if (immed) {
-  //   this.update();
-  // }
+  if (immed) {
+    this._updateDirtyBytes(this.dirtyBytes);
+  }
 }
 
 Oled.prototype.invertDisplay = function(bool) {
@@ -356,7 +353,6 @@ Oled.prototype.drawPixel = function(pixels, sync) {
 
     // push byte to dirty if not already there
     if (oled.dirtyBytes.indexOf(byte) === -1) {
-      console.log(byte);
       oled.dirtyBytes.push(byte);
     }
 
@@ -369,7 +365,6 @@ Oled.prototype.drawPixel = function(pixels, sync) {
   });
 
   if (immed) {
-    console.log('pixels are drawing immediately');
     oled._updateDirtyBytes(oled.dirtyBytes);
   }
 
@@ -429,8 +424,6 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
       var byte = byteArray[i];
       var page = Math.floor(byte / oled.WIDTH);
       var col = Math.floor(byte % oled.WIDTH); 
-      
-      console.log(i, col, page);
 
       var displaySeq = [
         oled.COLUMN_ADDR, col, col, // column start and end address 
@@ -456,14 +449,14 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
 // using Bresenham's line algorithm
 Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
 
+  var immed = (typeof sync === 'undefined') ? true : sync;
+
   var dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1,
       dy = Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1,
       err = (dx > dy ? dx : -dy) / 2;
 
-  console.log(sync);
-
   while (true) {
-    this.drawPixel([[x0, y0, color]], sync);
+    this.drawPixel([[x0, y0, color]], false);
 
     if (x0 === x1 && y0 === y1) break;
 
@@ -471,6 +464,10 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
 
     if (e2 > -dx) {err -= dy; x0 += sx;}
     if (e2 < dy) {err += dx; y0 += sy;}
+  }
+
+  if (immed) {
+    this._updateDirtyBytes(this.dirtyBytes);
   }
 }
 
@@ -522,8 +519,6 @@ Oled.prototype.startscroll = function(dir, start, stop) {
       0x00, 0xFF,
       oled.ACTIVATE_SCROLL
     );
-
-    console.log(cmdSeq);
 
     var i, cmdSeqLen = cmdSeq.length;
 

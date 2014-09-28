@@ -20,19 +20,23 @@ function test(oled) {
   //oled.stopscroll();
 
   // clear first just in case
-  //oled.clearDisplay();
-  //oled.update();
+  
+  oled.update();
 
   // draw some test pixels in each corner limit
-  oled.drawPixel([
-    [128, 1, 1],
-    [128, 32, 1],
-    [128, 16, 1],
-    [64, 16, 1]
-  ]);
+  // oled.drawPixel([
+  //   [128, 1, 1],
+  //   [128, 32, 1],
+  //   [128, 16, 1],
+  //   [64, 16, 1]
+  // ]);
   // oled.update();
 
   //oled.dimDisplay(true);
+
+  // these benchmark completely differently
+  //oled.clearDisplay(true);
+  //oled.clearDisplay(false);
 
   // // testing out my new module
   // pngtolcd(__dirname + '/images/cat.png', true, function(err, bitmapbuf) {
@@ -60,10 +64,11 @@ function test(oled) {
   // oled.fillRect(1, 1, 10, 20, 1);
   // oled.update();
 
-  // oled.drawLine(1, 1, 128, 32, 1);
+  //oled.drawLine(1, 1, 128, 32, 1);
   // oled.drawLine(64, 16, 128, 16, 1);
   // oled.drawLine(1, 10, 40, 10, 1);
-  // oled.drawLine(64, 0, 64, 32, 1);
+  // oled.drawLine(64, 1, 64, 32, 1, true);
+  // oled.drawLine(1, 1, 64, 1, 1, true);
   //oled.update();
 
   // /pass in an existing monochrome indexed image, then display
