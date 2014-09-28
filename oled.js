@@ -170,7 +170,6 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
     }
   }
   if (immed) {
-    //console.log(this.dirtyBytes);
     this._updateDirtyBytes(this.dirtyBytes);
   }
 }
@@ -190,7 +189,7 @@ Oled.prototype._drawChar = function(byteArray, size, sync) {
       if (size === 1) {
         xpos = x + i;
         ypos = y + j;
-        this.drawPixel([[xpos, ypos, color]], false);
+        this.drawPixel([xpos, ypos, color], false);
       } else {
         // MATH! Calculating pixel size multiplier to primitively scale the font
         xpos = x + (i * size);
@@ -303,21 +302,28 @@ Oled.prototype.invertDisplay = function(bool) {
 }
 
 Oled.prototype.drawBitmap = function(pixels, sync) {
+  var immed = (typeof sync === 'undefined') ? true : sync;
   var x, y,
       pixelArray = [];
 
   for (var i = 0; i < pixels.length; i++) {
-    x = Math.floor(i % this.WIDTH) + 1;
-    y = Math.floor(i / this.WIDTH) + 1;
+    x = Math.floor(i % this.WIDTH);
+    y = Math.floor(i / this.WIDTH);
 
-    this.drawPixel([[x, y, pixels[i]]], sync);
+    this.drawPixel([x, y, pixels[i]], false);
+  }
+
+  if (immed) {
+    this._updateDirtyBytes(this.dirtyBytes);
   }
 }
 
 Oled.prototype.drawPixel = function(pixels, sync) {
-
-  var oled = this;
   var immed = (typeof sync === 'undefined') ? true : sync;
+  var oled = this;
+
+  // handle lazy single pixel case
+  if (typeof pixels[0] !== 'object') pixels = [pixels];
 
   pixels.forEach(function(el) {
     // return if the pixel is out of range
@@ -325,7 +331,8 @@ Oled.prototype.drawPixel = function(pixels, sync) {
     if (x > oled.WIDTH || y > oled.HEIGHT) return;
 
     // thanks, Martin Richards.
-    x -= 1; y -=1;
+    // I wanna can this, this tool is for devs who get 0 indexes
+    //x -= 1; y -=1;
     var byte = 0,
         page = Math.floor(y / 8),
         pageShift = 0x01 << (y - 8 * page);
@@ -345,8 +352,7 @@ Oled.prototype.drawPixel = function(pixels, sync) {
     if (oled.dirtyBytes.indexOf(byte) === -1) {
       oled.dirtyBytes.push(byte);
     }
-    // sanity check
-    //console.log(color + ' pixel at ' + x + ', ' + y);
+
   });
 
   if (immed) {
@@ -412,7 +418,7 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
       err = (dx > dy ? dx : -dy) / 2;
 
   while (true) {
-    this.drawPixel([[x0, y0, color]], false);
+    this.drawPixel([x0, y0, color], false);
 
     if (x0 === x1 && y0 === y1) break;
 

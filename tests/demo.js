@@ -30,6 +30,8 @@ function test(oled) {
   //   [128, 16, 1],
   //   [64, 16, 1]
   // ]);
+
+  //oled.drawPixel([127, 1, 1]);
   // oled.update();
 
   //oled.dimDisplay(true);
@@ -61,21 +63,21 @@ function test(oled) {
 
   //oled.altClearDisplay();
 
-  oled.fillRect(1, 1, 10, 20, 1);
+  //oled.fillRect(1, 1, 10, 20, 1);
    //oled.update();
 
   //oled.drawLine(1, 1, 128, 32, 1);
   // oled.drawLine(64, 16, 128, 16, 1);
   // oled.drawLine(1, 10, 40, 10, 1);
-  // oled.drawLine(64, 1, 64, 32, 1, true);
+  //oled.drawLine(64, 1, 64, 32, 1, true);
   // oled.drawLine(1, 1, 64, 1, 1, true);
   //oled.update();
 
   // /pass in an existing monochrome indexed image, then display
-  // pngparse.parseFile(__dirname + '/bitmaps/parrot-index.png', function(err, image) {
-  //   oled.drawBitmap(image.data);
-  //   oled.update();
-  // });
+  pngparse.parseFile(__dirname + '/bitmaps/parrot-index.png', function(err, image) {
+    oled.drawBitmap(image.data);
+    //oled.update();
+  });
 
   // assign exisiting image buffer and display
   // oled.buffer = adafruitLogo;
