@@ -98,22 +98,24 @@ Oled.prototype._readI2C = function(fn) {
 }
 
 Oled.prototype._waitUntilReady = function(callback) {
-  var done;
-  var oled = this;
-  // TODO: attempt to use setImmediate
-  setTimeout(function tick() {
+  var done,
+      oled = this;
+
+  function tick(callback) {
     oled._readI2C(function(byte) {
       // read the busy byte in the response
       busy = byte >> 7 & 1;
       if (!busy) {
-      // if not busy, it's ready for callback
+        // if not busy, it's ready for callback
         callback();
       } else {
         console.log('I\'m busy!');
         setTimeout(tick, 0);
       }
     });
-  }, 0);
+  };
+
+  setTimeout(tick(callback), 0);
 }
 
 Oled.prototype.setCursor = function(x, y) {
@@ -127,7 +129,6 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
       len = wordArr.length,
       // start x offset at cursor pos
       offset = this.cursor_x,
-      oled = this,
       padding = 0, letspace = 1, leading = 2;
 
   // loop through words
@@ -139,7 +140,7 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
         compare = (font.width * size * slen) + (size * (len -1));
 
     // wrap words if necessary
-    if (wrap && len > 1 && (offset >= (oled.WIDTH - compare)) ) {
+    if (wrap && len > 1 && (offset >= (this.WIDTH - compare)) ) {
       console.log('wrapping word');
       offset = 1;
       this.cursor_y += (font.height * size) + size + leading;
@@ -160,7 +161,7 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
       offset += (font.width * size) + padding;
 
       // wrap letters if necessary
-      if (wrap && (offset >= (oled.WIDTH - font.width - letspace))) {
+      if (wrap && (offset >= (this.WIDTH - font.width - letspace))) {
         console.log('wrapping letter');
         offset = 1;
         this.cursor_y += (font.height * size) + size + leading; 
@@ -230,29 +231,28 @@ Oled.prototype._findCharBuf = function(font, c) {
 }
 
 Oled.prototype.update = function() {
-  var oled = this;
   // TODO: either keep this, or push asynchronous handling onto the consumer
-  oled._waitUntilReady(function() {
+  this._waitUntilReady(function() {
     var displaySeq = [
-      oled.COLUMN_ADDR, 0, oled.WIDTH - 1, // column start and end address 
-      oled.PAGE_ADDR, 0, 3 // page start and end address
+      this.COLUMN_ADDR, 0, this.WIDTH - 1, // column start and end address 
+      this.PAGE_ADDR, 0, 3 // page start and end address
     ];
 
     var displaySeqLen = displaySeq.length,
-        bufferLen = oled.buffer.length,
+        bufferLen = this.buffer.length,
         i, v;
 
     // send intro seq
     for (i = 0; i < displaySeqLen; i += 1) {
-      oled._writeI2C('cmd', displaySeq[i]);
+      this._writeI2C('cmd', displaySeq[i]);
     }
 
     // write buffer data
     for (v = 0; v < bufferLen; v += 1) {
-      oled._writeI2C('data', oled.buffer[v]);
+      this._writeI2C('data', this.buffer[v]);
     }
 
-  });
+  }.bind(this));
 }
 
 Oled.prototype.dimDisplay = function(bool) {
@@ -320,7 +320,6 @@ Oled.prototype.drawBitmap = function(pixels, sync) {
 
 Oled.prototype.drawPixel = function(pixels, sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
-  var oled = this;
 
   // handle lazy single pixel case
   if (typeof pixels[0] !== 'object') pixels = [pixels];
@@ -328,7 +327,7 @@ Oled.prototype.drawPixel = function(pixels, sync) {
   pixels.forEach(function(el) {
     // return if the pixel is out of range
     var x = el[0], y = el[1], color = el[2];
-    if (x > oled.WIDTH || y > oled.HEIGHT) return;
+    if (x > this.WIDTH || y > this.HEIGHT) return;
 
     // thanks, Martin Richards.
     // I wanna can this, this tool is for devs who get 0 indexes
@@ -338,22 +337,22 @@ Oled.prototype.drawPixel = function(pixels, sync) {
         pageShift = 0x01 << (y - 8 * page);
 
     // is the pixel on the first row of the page?
-    (page == 0) ? byte = x : byte = x + (oled.WIDTH * page); 
+    (page == 0) ? byte = x : byte = x + (this.WIDTH * page); 
 
     // colors! Well, monochrome. 
     if (color === 'BLACK' || color === 0) {
-      oled.buffer[byte] &= ~pageShift;
+      this.buffer[byte] &= ~pageShift;
     }
     if (color === 'WHITE' || color > 0) {
-      oled.buffer[byte] |= pageShift;
+      this.buffer[byte] |= pageShift;
     }
 
     // push byte to dirty if not already there
-    if (oled.dirtyBytes.indexOf(byte) === -1) {
-      oled.dirtyBytes.push(byte);
+    if (this.dirtyBytes.indexOf(byte) === -1) {
+      this.dirtyBytes.push(byte);
     }
 
-  });
+  }, this);
 
   if (immed) {
     oled._updateDirtyBytes(oled.dirtyBytes);
@@ -362,50 +361,49 @@ Oled.prototype.drawPixel = function(pixels, sync) {
 
 // looks at dirty bytes, and sends the updated byte to the display
 Oled.prototype._updateDirtyBytes = function(byteArray) {
-  var oled = this;
   var blen = byteArray.length, i,
       displaySeq = [];
 
   console.log('_updateDirtyBytes', blen);
 
   // check to see if this will even save time
-  if (blen > (oled.buffer.length / 7)) {
-    console.log('things are just too dirty: ', oled.dirtyBytes.length);
+  if (blen > (this.buffer.length / 7)) {
+    console.log('things are just too dirty: ', this.dirtyBytes.length);
     // now that all bytes are synced, reset dirty state
-    oled.dirtyBytes = [];
+    this.dirtyBytes = [];
     // just call regular update at this stage, saves on bytes sent
-    oled.update();
+    this.update();
 
     //return;
   } else {
 
-  //oled._waitUntilReady(function() {
-    // iterate through dirty bytes
-    for (var i = 0; i < blen; i += 1) {
+    this._waitUntilReady(function() {
+      // iterate through dirty bytes
+      for (var i = 0; i < blen; i += 1) {
 
-      var byte = byteArray[i];
-      var page = Math.floor(byte / oled.WIDTH);
-      var col = Math.floor(byte % oled.WIDTH); 
+        var byte = byteArray[i];
+        var page = Math.floor(byte / this.WIDTH);
+        var col = Math.floor(byte % this.WIDTH); 
 
-      var displaySeq = [
-        oled.COLUMN_ADDR, col, col, // column start and end address 
-        oled.PAGE_ADDR, page, page // page start and end address
-      ];
+        var displaySeq = [
+          this.COLUMN_ADDR, col, col, // column start and end address 
+          this.PAGE_ADDR, page, page // page start and end address
+        ];
 
-      var displaySeqLen = displaySeq.length, v;
-      
-      // send intro seq
-      for (v = 0; v < displaySeqLen; v += 1) {
-        oled._writeI2C('cmd', displaySeq[v]);
+        var displaySeqLen = displaySeq.length, v;
+        
+        // send intro seq
+        for (v = 0; v < displaySeqLen; v += 1) {
+          this._writeI2C('cmd', displaySeq[v]);
+        }
+        // send byte, then move on to next byte
+        this._writeI2C('data', this.buffer[byte]);
+        this.buffer[byte];
       }
-      // send byte, then move on to next byte
-      this._writeI2C('data', oled.buffer[byte]);
-      oled.buffer[byte];
-    }
-  //});
+    }.bind(this));
   }
   // now that all bytes are synced, reset dirty state
-  oled.dirtyBytes = [];
+  this.dirtyBytes = [];
 }
 
 // using Bresenham's line algorithm
@@ -447,7 +445,6 @@ Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
 
 // activate a right handed scroll for rows start through stop
 Oled.prototype.startscroll = function(dir, start, stop) {
-  var oled = this,
   //start = '0x' + start.toString(16),
   //stop = '0x' + stop.toString(16),
   scrollHeader,
@@ -455,23 +452,23 @@ Oled.prototype.startscroll = function(dir, start, stop) {
 
   switch (dir) {
     case 'right':
-      cmdSeq.push(oled.RIGHT_HORIZONTAL_SCROLL); break;
+      cmdSeq.push(this.RIGHT_HORIZONTAL_SCROLL); break;
     case 'left':
-      cmdSeq.push(oled.LEFT_HORIZONTAL_SCROLL); break;
+      cmdSeq.push(this.LEFT_HORIZONTAL_SCROLL); break;
     // TODO: left diag and right diag not working yet 
     case 'left diagonal':
       cmdSeq.push(
-        oled.SET_VERTICAL_SCROLL_AREA, 0x00,
-        oled.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL,
-        oled.HEIGHT
+        this.SET_VERTICAL_SCROLL_AREA, 0x00,
+        this.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL,
+        this.HEIGHT
       );
       break;
     // TODO: left diag and right diag not working yet
     case 'right diagonal':
       cmdSeq.push(
-        oled.SET_VERTICAL_SCROLL_AREA, 0x00,
-        oled.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL,
-        oled.HEIGHT
+        this.SET_VERTICAL_SCROLL_AREA, 0x00,
+        this.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL,
+        this.HEIGHT
       );
       break;
   }
@@ -483,15 +480,15 @@ Oled.prototype.startscroll = function(dir, start, stop) {
       0x00, stop,
       // TODO: these need to change when diag
       0x00, 0xFF,
-      oled.ACTIVATE_SCROLL
+      this.ACTIVATE_SCROLL
     );
 
     var i, cmdSeqLen = cmdSeq.length;
 
     for (i = 0; i < cmdSeqLen; i += 1) {
-      oled._writeI2C('cmd', cmdSeq[i]);
+      this._writeI2C('cmd', cmdSeq[i]);
     }
-  });
+  }.bind(this));
 }
 
 Oled.prototype.stopscroll = function() {
