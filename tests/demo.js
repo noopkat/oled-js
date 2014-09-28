@@ -61,8 +61,8 @@ function test(oled) {
 
   //oled.altClearDisplay();
 
-  // oled.fillRect(1, 1, 10, 20, 1);
-  // oled.update();
+  oled.fillRect(1, 1, 10, 20, 1);
+   //oled.update();
 
   //oled.drawLine(1, 1, 128, 32, 1);
   // oled.drawLine(64, 16, 128, 16, 1);

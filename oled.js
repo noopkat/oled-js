@@ -195,7 +195,7 @@ Oled.prototype._drawChar = function(byteArray, size, sync) {
         // MATH! Calculating pixel size multiplier to primitively scale the font
         xpos = x + (i * size);
         ypos = y + (j * size);
-        this.fillRect(xpos, ypos, size, size, color, sync);
+        this.fillRect(xpos, ypos, size, size, color, false);
       }
     }
   }
@@ -472,10 +472,14 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
 }
 
 Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
+  var immed = (typeof sync === 'undefined') ? true : sync;
   // one iteration for each column of the rectangle
   for (var i = x; i < x + w; i += 1) {
     // draws a vert line
-    this.drawLine(i, y, i, y+h-1, color, sync);
+    this.drawLine(i, y, i, y+h-1, color, false);
+  }
+  if (immed) {
+    this._updateDirtyBytes(this.dirtyBytes);
   }
 }
 
