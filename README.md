@@ -36,25 +36,16 @@ board.on('ready', function() {
 
 ## Available methods
 
-### update
-Sends the entire buffer in its current state to the oled display, effectively syncing the two.
-
-Usage:
-```javascript
-oled.update();
-```
-
 ### clearDisplay
-Fills the buffer with 'off' pixels (0x00). You'll need to call update() after this to send the buffer content update to the display.
+Fills the buffer with 'off' pixels (0x00). Optional bool argument specifies whether screen updates immediately with result. Default is true.
 
 Usage:
 ```javascript
 oled.clearDisplay();
-oled.update();
 ```
 
 ### dimDisplay
-Lowers the contrast on the display. This method takes one argument, a boolean. True for dimming, false to restore normal contrast. Calling update() afterwards is not required.
+Lowers the contrast on the display. This method takes one argument, a boolean. True for dimming, false to restore normal contrast. 
 
 Usage:
 ```javascript
@@ -62,7 +53,7 @@ oled.dimDisplay(true|false);
 ```
 
 ### invertDisplay
-Inverts the pixels on the display. Black becomes white, white becomes black. This method takes one argument, a boolean. True for inverted state, false to restore normal pixel colors. Calling update() afterwards is not required.
+Inverts the pixels on the display. Black becomes white, white becomes black. This method takes one argument, a boolean. True for inverted state, false to restore normal pixel colors. 
 
 Usage:
 ```javascript
@@ -70,7 +61,7 @@ oled.invertDisplay(true|false);
 ```
 
 ### turnOffDisplay
-Turns the display off. Calling update() afterwards is not required.
+Turns the display off. 
 
 Usage:
 ```javascript
@@ -78,7 +69,7 @@ oled.turnOffDisplay();
 ```
 
 ### turnOnDisplay
-Turns the display on. Calling update() afterwards is not required.
+Turns the display on. 
 
 Usage:
 ```javascript
@@ -91,7 +82,7 @@ Draws a pixel at a specified position on the display. This method takes one argu
 
 Each pixel needs an x position, a y position, and a color. Colors can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
 
-Call update() when done.
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
 Usage:
 ```javascript
@@ -103,7 +94,6 @@ oled.drawPixel([
 	[128, 16, 1],
 	[64, 16, 1]
 ]);
-oled.update();
 ```
 
 ### drawLine
@@ -114,13 +104,12 @@ Arguments:
 + int **x1, y1** - end location of line
 + int **color** - can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
 
-Call update() when done.
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
 Usage:
 ```javascript
 // args: (x0, y0, x1, y1, color)
 oled.drawLine(1, 1, 128, 32, 1); 
-oled.update();
 ```
 
 ### fillRect
@@ -131,17 +120,18 @@ Arguments:
 + int **x1, y1** - bottom right corner of rectangle
 + int **color** - can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
 
-Call update() when done.
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
 Usage:
 ```javascript
 // args: (x0, y0, x1, y1, color)
 oled.fillRect(1, 1, 10, 20, 1);
-oled.update();
 ```
 
 ### drawBitmap
 Draws a bitmap using raw pixel data returned from an image parser. The image sourced must be monochrome, and indexed to only 2 colors. Using an image editor or ImageMagick might be required.
+
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
 Tip: use a NodeJS image parser to get the pixel data, such as [pngparse](https://www.npmjs.org/package/pngparse). A demonstration of using this is below.
 
@@ -156,7 +146,6 @@ var pngparse = require('pngparse');
 
 pngparse.parseFile('indexed_file.png', function(err, image) {
 	oled.drawBitmap(image.data);
-	oled.update();
 });
 ```
 
@@ -207,6 +196,8 @@ Arguments:
 + int **color** - color of text. Can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
 + bool **wrapping** - true applies word wrapping at the screen limit, false for no wrapping. If a long string without spaces is supplied as the text, just letter wrapping will apply instead.
 
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
+
 Before all of this text can happen, you need to load a font buffer for use. A good font to start with is NodeJS package [oled-font-5x7](https://www.npmjs.org/package/oled-font-5x7).
 
 Usage:
@@ -220,6 +211,13 @@ var font = require('oled-font-5x7');
 // sets cursor to x = 1, y = 1
 oled.setCursor(1, 1);
 oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
+```
+
+### update
+Sends the entire buffer in its current state to the oled display, effectively syncing the two. This method generally does not need to be called, unless you're messing around with the framebuffer manually before you're ready to sync with the display. It's also needed if you're choosing not to draw on the screen immediately with the built in methods.
+
+Usage:
+```javascript
 oled.update();
 ```
 
