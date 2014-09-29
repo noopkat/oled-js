@@ -129,7 +129,7 @@ oled.fillRect(1, 1, 10, 20, 1);
 ```
 
 ### drawBitmap
-Draws a bitmap using raw pixel data returned from an image parser. The image sourced must be monochrome, and indexed to only 2 colors. Using an image editor or ImageMagick might be required.
+Draws a bitmap using raw pixel data returned from an image parser. The image sourced must be monochrome, and indexed to only 2 colors. Resize the bitmap to your screen dimensions first. Using an image editor or ImageMagick might be required.
 
 Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
@@ -149,7 +149,20 @@ pngparse.parseFile('indexed_file.png', function(err, image) {
 });
 ```
 
-This method is provided as a primitive convenience. A better way to display images is to use NodeJS package [png-to-lcd](https://www.npmjs.org/package/png-to-lcd) instead. It's just as easy to use at drawBitmap, but is compatible with all image depths (lazy is good!). This alternative method is covered further down in this documentation.
+This method is provided as a primitive convenience. A better way to display images is to use NodeJS package [png-to-lcd](https://www.npmjs.org/package/png-to-lcd) instead. It's just as easy to use as drawBitmap, but is compatible with all image depths (lazy is good!). It will also auto-dither if you choose. You should still resize your image to your screen dimensions. This alternative method is covered below:
+
+```
+npm install png-to-lcd
+```
+
+```javascript
+var pngtolcd = require('png-to-lcd');
+
+pngtolcd('nyan-cat.png', true, function(err, bitmap) {
+  oled.buffer = bitmap;
+  oled.update();
+});
+```
 
 ### startScroll
 Scrolls the current display either left or right.
@@ -220,7 +233,3 @@ Usage:
 ```javascript
 oled.update();
 ```
-
-## Displaying images - the better way
-TODO.  
-Something something `npm install png-to-lcd`
