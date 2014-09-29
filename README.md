@@ -1,4 +1,4 @@
-johnny-five-oled
+oled js
 ========================
 
 (currently a work in progress)
@@ -23,7 +23,7 @@ This repo is a library compatible with Rick Waldron's [johnny-five](https://gith
 ```javascript
 var five = require('johnny-five'),
     board = new five.Board(),
-    Oled = require('johnny-five-oled');
+    Oled = require('oled-js');
     
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
