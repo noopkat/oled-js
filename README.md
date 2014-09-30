@@ -5,7 +5,9 @@ oled js
 
 ## What is this?
 
-This repo is a library compatible with Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C compatible monochrome OLED screens. Works with all sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
+This repo is a library compatible with both Firmata.js, and Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C compatible monochrome OLED screens. Works with all sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
+
+OLED screens are really cool - now you can control them with JavaScript!
 
 ## Install 
 

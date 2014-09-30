@@ -1,7 +1,7 @@
 {
   "name": "oled-js",
   "version": "0.0.0",
-  "description": "johnny-five compatible lib for oled devices",
+  "description": "johnny-five/firmata.js compatible lib for oled devices",
   "main": "oled.js",
   "dependencies": {
     "johnny-five": "~0.8.9",
