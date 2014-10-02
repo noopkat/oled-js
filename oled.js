@@ -141,7 +141,6 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
 
     // wrap words if necessary
     if (wrap && len > 1 && (offset >= (this.WIDTH - compare)) ) {
-      console.log('wrapping word');
       offset = 1;
       this.cursor_y += (font.height * size) + size + leading;
       this.setCursor(offset, this.cursor_y);
@@ -162,7 +161,6 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
 
       // wrap letters if necessary
       if (wrap && (offset >= (this.WIDTH - font.width - letspace))) {
-        console.log('wrapping letter');
         offset = 1;
         this.cursor_y += (font.height * size) + size + leading; 
       }
@@ -355,7 +353,7 @@ Oled.prototype.drawPixel = function(pixels, sync) {
   }, this);
 
   if (immed) {
-    oled._updateDirtyBytes(oled.dirtyBytes);
+    this._updateDirtyBytes(this.dirtyBytes);
   }
 }
 
@@ -364,11 +362,8 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
   var blen = byteArray.length, i,
       displaySeq = [];
 
-  console.log('_updateDirtyBytes', blen);
-
   // check to see if this will even save time
   if (blen > (this.buffer.length / 7)) {
-    console.log('things are just too dirty: ', this.dirtyBytes.length);
     // now that all bytes are synced, reset dirty state
     this.dirtyBytes = [];
     // just call regular update at this stage, saves on bytes sent
@@ -447,8 +442,8 @@ Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
 Oled.prototype.startscroll = function(dir, start, stop) {
   //start = '0x' + start.toString(16),
   //stop = '0x' + stop.toString(16),
-  scrollHeader,
-  cmdSeq = [];
+  var scrollHeader,
+      cmdSeq = [];
 
   switch (dir) {
     case 'right':
