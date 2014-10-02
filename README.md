@@ -12,7 +12,7 @@ OLED screens are really cool - now you can control them with JavaScript!
 ## Install 
 
 1. `git clone`
-2. `npm install`
+2. `npm install` (use --dev if you want to run the demo file)
 3. Upload standard firmata lib to an Arduino of choice
 4. hook up I2C compatible oled to the Arduino  
 (A4 -> SDL, A5 -> SCL if using an Uno, look up your board if not Uno)
