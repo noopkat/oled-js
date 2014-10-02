@@ -36,6 +36,9 @@ board.on('ready', function() {
     
 ```
 
+### Wait, how do I find out the I2C address of my OLED screen?
+Yeah this sounds like a nightmare, but it's pretty simple! Before uploading standard firmata to your Arduino, upload the [following sketch](http://playground.arduino.cc/Main/I2cScanner) from the Arduino Playground called 'I2C scanner'. Does what it says on the box. Open up your serial monitor, and you'll see your device address pop up there. Make a note of it, then re-upload standard firmata to your Arduino again.
+
 ## Available methods
 
 ### clearDisplay
