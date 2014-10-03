@@ -11,14 +11,20 @@ OLED screens are really cool - now you can control them with JavaScript!
 
 ## Install 
 
-1. `git clone`
-2. `npm install` (use --dev if you want to run the demo file)
-3. Upload standard firmata lib to an Arduino of choice
-4. hook up I2C compatible oled to the Arduino  
+1. `npm install oled-js`
+2. Upload standard firmata lib to an Arduino of choice
+3. Hook up I2C compatible oled to the Arduino  
 (A4 -> SDL, A5 -> SCL if using an Uno, look up your board if not Uno)
-5. `node tests/demoTime.js` (look in the file for examples of all method calls)
 
-![fritzing diagram](https://raw.githubusercontent.com/noopkat/johnny-five-oled/master/docs/fritzing/i2C_128x32_Uno.png)
+If you'd like to run the demo:
+1. `git clone`
+2. `npm install`
+3. Replace width, height, and I2C address params with your own in tests/demoTime.js
+4. `node tests/demoTime.js`  
+  
+  
+![fritzing diagram](https://raw.githubusercontent.com/noopkat/johnny-five-oled/master/docs/fritzing/i2C_128x32_Uno.png)  
+
 
 ## Example
 
