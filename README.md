@@ -238,3 +238,8 @@ Usage:
 ```javascript
 oled.update();
 ```
+
+## Future
++ better documentation
++ SPI support
++ 16-bit color oled support
