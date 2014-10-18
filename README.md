@@ -1,4 +1,4 @@
-![‘npm version’](http://img.shields.io/npm/v/oled-js.svg?style=flat) ![‘github issues’](http://img.shields.io/github/issues/noopkat/oled-js.svg?style=flat) ![‘downloads over month’](http://img.shields.io/npm/dm/oled-js.svg?style=flat)
+![‘npm version’](http://img.shields.io/npm/v/oled-js.svg?style=flat) ![‘downloads over month’](http://img.shields.io/npm/dm/oled-js.svg?style=flat)
 
 oled js
 ========================
