@@ -7,7 +7,7 @@ oled js
 
 ## What is this?
 
-This repo is a library compatible with both Firmata.js, and Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C compatible monochrome OLED screens. Works with 128 x 32, 128 x 64 and 96 x 16 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
+This repo is a library compatible with both Firmata.js, and Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C/SPI compatible monochrome OLED screens. Works with 128 x 32, 128 x 64 and 96 x 16 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
 
 OLED screens are really cool - now you can control them with JavaScript!
 
@@ -15,21 +15,23 @@ OLED screens are really cool - now you can control them with JavaScript!
 
 1. `npm install oled-js`
 2. Upload standard firmata lib to an Arduino of choice
-3. Hook up I2C compatible oled to the Arduino  
-(A4 -> SDL, A5 -> SCL if using an Uno, look up your board if not Uno)
+
+## I2C screens
+Hook up I2C compatible oled to the Arduino. If using an Arduino Uno, pins are as follows:
+
++ SDL to pin A4
++ SCL to pin A5 
+
+[Fritzing diagram is here](https://raw.githubusercontent.com/noopkat/johnny-five-oled/master/docs/fritzing/i2C_128x32_Uno.png). Look up the correct pins if using a board other than Arduino.
 
 If you'd like to run the demo:
 
-1. `git clone`
+1. `git clone` this repo (get latest release instead of master branch)
 2. `npm install`
-3. Replace width, height, and I2C address params with your own in tests/demoTime.js
-4. `node tests/demoTime.js`  
-  
-  
-![fritzing diagram](https://raw.githubusercontent.com/noopkat/johnny-five-oled/master/docs/fritzing/i2C_128x32_Uno.png)  
+3. Replace width, height, address and protocol params with your own in tests/demoTime.js
+4. `node tests/demoTime.js`    
 
-
-## Example
+### I2C example
 
 ```javascript
 var five = require('johnny-five'),
@@ -39,7 +41,7 @@ var five = require('johnny-five'),
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
   
-  var oled = new Oled(board, 128, 32, 0x3C); // args: (board, width, height, I2C address)
+  var oled = new Oled(board, five, 128, 32, 0x3C, 'I2C'); // args: (board, width, height, I2C address, protocol)
   // do cool oled things here
 });
     
@@ -47,6 +49,43 @@ board.on('ready', function() {
 
 ### Wait, how do I find out the I2C address of my OLED screen?
 Yeah this sounds like a nightmare, but it's pretty simple! Before uploading standard firmata to your Arduino, upload the [following sketch](http://playground.arduino.cc/Main/I2cScanner) from the Arduino Playground called 'I2C scanner'. Does what it says on the box. Open up your serial monitor, and you'll see your device address pop up there. Make a note of it, then re-upload standard firmata to your Arduino again.
+
+## SPI screens
+
+**IMPORTANT NOTE: Using SPI will make your screen update and draw VERY slow. Manual hardware SPI over USB is the only way currently to do this within Johnny-Five, which is not optimized for the normal speed you can expect from SPI in general. Sorry about that.**
+
+Hook up SPI compatible oled to the Arduino. If using an Arduino Uno, pins are as follows:
+
++ Data/MOSI to pin D9
++ CLK to pin D10
++ D/C to pin D11
++ RST to pin D13
++ CS/SS to pin 12 (you can change this one if you really want to)
+
+Fritzing diagram coming soon.
+
+If you'd like to run the demo:
+
+1. `git clone` this repo (get latest release instead of master branch)
+2. `npm install`
+3. Replace width, height, address (CS/SS pin), and protocol params with your own in tests/demoTime.js
+4. `node tests/demoTime.js`    
+
+#### SPI example
+
+```javascript
+var five = require('johnny-five'),
+    board = new five.Board(),
+    Oled = require('oled-js');
+    
+board.on('ready', function() {
+  console.log('Connected to Arduino, ready.');
+  
+  var oled = new Oled(board, five, 128, 32, 12, 'SPI'); // args: (board, width, height, SPI CS/SS pin, protocol)
+  // do cool oled things here
+});
+    
+```
 
 ## Available methods
 

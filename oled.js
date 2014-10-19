@@ -60,8 +60,34 @@ var Oled = function(board, five, width, height, address, protocol) {
     '96x16': {
       'multiplex': 0x0F,
       'compins': 0x2
+    },
+    // this is the microview, currently wip
+    '64x48': {
+      'multiplex': 0x2F,
+      'compins': 0x2
     }
   };
+
+  // microview is wip
+  if (protocol === 'microview') {
+    // microview spi pins
+    this.SPIconfig = {   
+      'dcPin': 8,
+      'ssPin': 10,
+      'rstPin': 7,
+      'clkPin': 13,
+      'mosiPin': 11
+    };
+  } else {
+    // generic spi pins
+    this.SPIconfig = {
+      'dcPin': 11,
+      'ssPin': this.ADDRESS,
+      'rstPin': 13,
+      'clkPin': 10,
+      'mosiPin': 9
+    };
+  }
 
   var screenSize = this.WIDTH + 'x' + this.HEIGHT,
       screenConfig = config[screenSize];
@@ -104,20 +130,14 @@ var Oled = function(board, five, width, height, address, protocol) {
 }
 
 Oled.prototype._setUpSPI = function() {
-  // pin refs
-    this.dc = 11;
-    this.ss = this.ADDRESS;
-    this.clk = 10;
-    this.rst = 13;
-    this.mosi = 9;
 
     // set up spi pins
-    this.dcPin = new this.five.Pin(this.dc);
-    this.ssPin = new this.five.Pin(this.ss);
-    this.clkPin = new this.five.Pin(this.clk);
-    this.mosiPin = new this.five.Pin(this.mosi);
+    this.dcPin = new this.five.Pin(this.SPIconfig.dcPin);
+    this.ssPin = new this.five.Pin(this.SPIconfig.ssPin);
+    this.clkPin = new this.five.Pin(this.SPIconfig.clkPin);
+    this.mosiPin = new this.five.Pin(this.SPIconfig.mosiPin);
     // reset won't be used as it causes a bunch of default initialisations
-    this.rstPin = new this.five.Pin(this.rst);
+    this.rstPin = new this.five.Pin(this.SPIconfig.rstPin);
 
     // get the screen out of default mode
     this.rstPin.low();
