@@ -19,6 +19,7 @@ OLED screens are really cool - now you can control them with JavaScript!
 (A4 -> SDL, A5 -> SCL if using an Uno, look up your board if not Uno)
 
 If you'd like to run the demo:
+
 1. `git clone`
 2. `npm install`
 3. Replace width, height, and I2C address params with your own in tests/demoTime.js

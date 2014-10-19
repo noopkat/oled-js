@@ -10,7 +10,8 @@ board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
 
   // passing in board as a temp strategy.
-  var oled = new Oled(board, 128, 32, 0x3C);
+  //var oled = new Oled(board, 128, 32, 0x3C); // 128x32
+  var oled = new Oled(board, 128, 64, 0x3D); // 128x64
   test(oled);
 });
 
@@ -19,6 +20,8 @@ function test(oled) {
 
   // if it was already scrolling, stop
   oled.stopscroll();
+  
+  oled.clearDisplay();
 
   // clear first just in case
   oled.update();
@@ -85,7 +88,7 @@ function test(oled) {
         // display text
         oled.setCursor(0, 7);
         oled.writeString(font, 2, 'SCROLL!', 1, true);
-        oled.startscroll('right', 0x00, 0x0F);
+        oled.startscroll('right', 0, 3);
       }
     }
   ]);
