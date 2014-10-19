@@ -252,7 +252,7 @@ Oled.prototype.update = function() {
   this._waitUntilReady(function() {
     var displaySeq = [
       this.COLUMN_ADDR, 0, this.WIDTH - 1, // column start and end address 
-      this.PAGE_ADDR, 0, 3 // page start and end address
+      this.PAGE_ADDR, 0, (this.HEIGHT / 8) - 1 // page start and end address
     ];
 
     var displaySeqLen = displaySeq.length,
