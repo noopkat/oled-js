@@ -44,6 +44,7 @@ var Oled = function(board, five, width, height, address, protocol) {
 
   this.dirtyBytes = [];
 
+  // this is necessary as we're not natively sitting within johnny-five lib
   this.board = board;
   this.five = five;
 
