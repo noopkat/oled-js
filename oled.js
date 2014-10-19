@@ -458,8 +458,6 @@ Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
 
 // activate a right handed scroll for rows start through stop
 Oled.prototype.startscroll = function(dir, start, stop) {
-  //start = '0x' + start.toString(16),
-  //stop = '0x' + stop.toString(16),
   var scrollHeader,
       cmdSeq = [];
 

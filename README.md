@@ -181,15 +181,13 @@ pngtolcd('nyan-cat.png', true, function(err, bitmap) {
 Scrolls the current display either left or right.
 Arguments:
 + string **direction** - direction of scrolling. 'left' or 'right'
-+ hex **start** - starting row of scrolling area
-+ hex **stop** - end row of scrolling area
-
-TODO: accept decimal instead of hex
++ int **start** - starting row of scrolling area
++ int **stop** - end row of scrolling area
 
 Usage:
 ```javascript
 // args: (direction, start, stop)
-oled.startscroll('left', 0x00, 0x0F);
+oled.startscroll('left', 0, 15); // this will scroll an entire 128 x 32 screen
 ```
 
 ### stopScroll
