@@ -1,4 +1,4 @@
-var Oled = function(board, width, height, address, protocol) {
+var Oled = function(board, five, width, height, address, protocol) {
 
   // create command buffers
   this.HEIGHT = height;
@@ -45,6 +45,7 @@ var Oled = function(board, width, height, address, protocol) {
   this.dirtyBytes = [];
 
   this.board = board;
+  this.five = five;
 
   var config = {
     '128x32': {
@@ -103,28 +104,32 @@ var Oled = function(board, width, height, address, protocol) {
     this.dcPin = new five.Pin(this.dc);
     this.ssPin = new five.Pin(this.ss);
     this.clkPin = new five.Pin(this.clk);
-    this.rstPin = new five.Pin(this.rst);
     this.mosiPin = new five.Pin(this.mosi);
+    // reset won't be used as it causes a bunch of default initialisations
+    this.rstPin = new five.Pin(this.rst);
 
-    
+    // keeping here for reference
     // csport      = portOutputRegister(digitalPinToPort(cs));
     //this.cspinmask = this._pinToBitMask(this.cs);
     // dcport      = portOutputRegister(digitalPinToPort(dc));
     //this.dcpinmask = this._pinToBitMask(this.dc);
-
+    this.rstPin.high();
     // Set SS to high so a connected chip will be "deselected" by default
     this.ssPin.high();
 
     // When the SS pin is set as OUTPUT, it can be used as
     // a general purpose output port (it doesn't influence
     // SPI operations).
-    this.ssPin.OUTPUT();
+    //this.ssPin.OUTPUT();
+    // this.board.pinMode("D12", this.board.io.MODES.OUTPUT);
+    // this.board.pinMode("D10", this.board.io.MODES.OUTPUT);
+    // this.board.pinMode("D9", this.board.io.MODES.OUTPUT);
 
     // Warning: if the SS pin ever becomes a LOW INPUT then SPI
     // automatically switches to Slave, so the data direction of
     // the SS pin MUST be kept as OUTPUT.
-    this.spcr |= this.spcrPos('MSTR');
-    this.spcr |= this.spcrPos('SPE');
+    // this.spcr |= this._spcrPos('MSTR');
+    // this.spcr |= this._spcrPos('SPE');
 
     // Set direction register for SCK and MOSI pin.
     // MISO pin automatically overrides to INPUT.
@@ -132,8 +137,8 @@ var Oled = function(board, width, height, address, protocol) {
     // clocking in a single bit since the lines go directly
     // from "input" to SPI control.  
     // http://code.google.com/p/arduino/issues/detail?id=888
-    this.clkPin.OUTPUT();
-    this.mosiPin.OUTPUT();
+    //this.clkPin.OUTPUT();
+    //this.mosiPin.OUTPUT();
   }
 
   // set up the display so it knows what to do
@@ -188,42 +193,71 @@ Oled.prototype._transfer = function(type, val) {
     // send control and actual val
     // this.shiftRegister.send(control);
     // this.shiftRegister.send(val);
-    this._writeSPI([control, value]);
+    //this._writeSPI([control, val], type);
+    this._writeSPI([val], type);
   }
 }
 
-Oled.prototype._writeSPI = function(bytes) {
-
+Oled.prototype._writeSPI = function(bytes, mode) {
   var bit, i, misoStatus;
+  // turn on slave select
+  this.ssPin.high();
 
-  // - input data is captured on rising edge of SCLK.
-  // - output data is propagated on falling edge of SCLK.
 
-  for (i = 0; i++; i < bytes.length) {
-   
-    for (bit = 0x80; bit; bit >>= 1) {
-      // shift out a bit to the MOSI line 
-      this.mosiPin.write((bytes[i] & bit) ? 255 : 0);
-
-      // delay from low clock time ref here
-
-      // pull clock high
-      this.clkPin.high();
-
-      this.misoPin.query(function(state) {
-          misoStatus = state.value;
-          if (misoStatus === 255) {
-          // shift in a bit from the miso line 
-          bytes[i] |= bit;
-        }
-      }.bind(this));
-
-      // delay from high clock time ref here
-
-      // pull the clock line low 
-      this.clkPin.low();
+    if (mode === 'cmd') {
+      this.dcPin.low();
+    } else {
+      this.dcPin.high();
     }
 
+  this.ssPin.low();
+
+  for (i = 0; i < bytes.length; i++) {
+    //console.log('byte', i);
+    
+
+    
+    //console.log('dcpin', mode === 'cmd' ? 0 : 255);
+
+    //for (bit = 0x80; bit; bit >>= 1) {
+
+    for (bit = 7; bit >= 0; bit--) {
+      //console.log(bit);
+      //console.log('bit', (bytes[i] & bit) ? 255 : 0);
+
+      // pull clock low
+      this.clkPin.low();
+
+       // shift out a bit to the MOSI line 
+      //this.mosiPin.write((bytes[i] & bit) ? 255 : 0);
+
+      if (bytes[i] & (1 << bit)) {
+        this.mosiPin.high();
+      } else {
+        this.mosiPin.low();
+      }
+
+      // this.mosiPin.query(function(state) {
+      //     misoStatus = state.value;
+      //     if (misoStatus === 255) {
+      //       console.log('status is high');
+      //     // shift in a bit from the miso line 
+      //     bytes[i] |= bit;
+      //   }
+      // }.bind(this));
+      
+      // if ((bytes[i] & bit)) {
+      //   bytes[i] |= bit;
+      // }
+
+
+      // pull clock high 
+      this.clkPin.high();
+
+    }
+
+    // turn off slave select
+    this.ssPin.high();
   }
   
     // keeping here for reference
@@ -296,7 +330,7 @@ Oled.prototype._waitUntilReady = function(callback) {
     });
   };
 
-  if (this.PROTOCOL !== 'SPI') {
+  if (this.PROTOCOL === 'I2C') {
     setTimeout(tick(callback), 0);
   } else {
     console.log('ring ring');

@@ -29,6 +29,7 @@ function test(oled) {
   // make it prettier 
   oled.dimDisplay(true);
 
+
   temporal.queue([
     {
       delay: 100,

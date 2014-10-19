@@ -14,7 +14,7 @@ board.on('ready', function() {
   // passing in board as a temp strategy.
   //var oled = new Oled(board, 128, 32, 0x3C, 'I2C'); // 128x32
   //var oled = new Oled(board, 128, 64, 0x3D, 'I2C'); // 128x64
-  var oled = new Oled(five, 128, 64, 12, 'SPI');
+  var oled = new Oled(board, five, 128, 64, 12, 'SPI');
 
   test(oled);
 });
@@ -30,8 +30,8 @@ function test(oled) {
   // clear first just in case
   oled.update();
 
-  // make it prettier 
-  oled.dimDisplay(true);
+  oled.turnOnDisplay();
+
 
   temporal.queue([
     {
