@@ -1,9 +1,10 @@
-var Oled = function(board, width, height, address) {
+var Oled = function(board, width, height, address, protocol) {
 
   // create command buffers
   this.HEIGHT = height;
   this.WIDTH = width;
   this.ADDRESS = address || 0x3C;
+  this.PROTOCOL = protocol;
   this.DISPLAY_OFF = 0xAE;
   this.DISPLAY_ON = 0xAF;
   this.SET_DISPLAY_CLOCK_DIV = 0xD5;
@@ -63,8 +64,77 @@ var Oled = function(board, width, height, address) {
   var screenSize = this.WIDTH + 'x' + this.HEIGHT,
       screenConfig = config[screenSize];
 
-  // enable i2C in firmata
-  this.board.io.sendI2CConfig(0);
+  if (this.PROTOCOL === 'I2C') {
+    console.log('using I2C mode');
+    // enable i2C in firmata
+    this.board.io.sendI2CConfig(0);
+  } else {
+    console.log('attempting SPI...');
+
+    // keeping here for reference
+    // this.shiftRegister = new board.ShiftRegister({
+    //   pins: {
+    //     data: 9,
+    //     clock: 10,
+    //     latch: this.ADDRESS
+    //   }
+    // });
+
+    // keeping here for reference
+    // //opcodes
+    // #define WREN  6
+    // #define WRDI  4
+    // #define RDSR  5
+    // #define WRSR  1
+    // #define READ  3
+    // #define WRITE 2 
+
+    // we'll see if I end up needing this controller byte
+    this.spcr = 0;
+
+    // pin refs
+    this.dc = 11;
+    this.ss = 12;
+    this.clk = 10;
+    this.rst = 13;
+    this.mosi = 9;
+
+    // set up spi pins
+    this.dcPin = new five.Pin(this.dc);
+    this.ssPin = new five.Pin(this.ss);
+    this.clkPin = new five.Pin(this.clk);
+    this.rstPin = new five.Pin(this.rst);
+    this.mosiPin = new five.Pin(this.mosi);
+
+    
+    // csport      = portOutputRegister(digitalPinToPort(cs));
+    //this.cspinmask = this._pinToBitMask(this.cs);
+    // dcport      = portOutputRegister(digitalPinToPort(dc));
+    //this.dcpinmask = this._pinToBitMask(this.dc);
+
+    // Set SS to high so a connected chip will be "deselected" by default
+    this.ssPin.high();
+
+    // When the SS pin is set as OUTPUT, it can be used as
+    // a general purpose output port (it doesn't influence
+    // SPI operations).
+    this.ssPin.OUTPUT();
+
+    // Warning: if the SS pin ever becomes a LOW INPUT then SPI
+    // automatically switches to Slave, so the data direction of
+    // the SS pin MUST be kept as OUTPUT.
+    this.spcr |= this.spcrPos('MSTR');
+    this.spcr |= this.spcrPos('SPE');
+
+    // Set direction register for SCK and MOSI pin.
+    // MISO pin automatically overrides to INPUT.
+    // By doing this AFTER enabling SPI, we avoid accidentally
+    // clocking in a single bit since the lines go directly
+    // from "input" to SPI control.  
+    // http://code.google.com/p/arduino/issues/detail?id=888
+    this.clkPin.OUTPUT();
+    this.mosiPin.OUTPUT();
+  }
 
   // set up the display so it knows what to do
   var initSeq = [
@@ -90,13 +160,18 @@ var Oled = function(board, width, height, address) {
 
   // write init seq commands
   for (i = 0; i < initSeqLen; i ++) {
-    this._writeI2C('cmd', initSeq[i]);
+      console.log('writing initialisation..');
+      this._transfer('cmd', initSeq[i]);
   }
 }
 
+Oled.prototype._spcrPos = function(val) { 
+  return ['SPR0', 'SPR1', 'CPHA', 'CPOL', 'MSTR', 'DORD', 'SPE', 'SPIE'].indexOf(val);
+};
+
 
 // writes both commands and data buffers to this device
-Oled.prototype._writeI2C = function(type, val) {
+Oled.prototype._transfer = function(type, val) {
   var control;
   if (type === 'data') {
     control = 0x40;
@@ -105,9 +180,96 @@ Oled.prototype._writeI2C = function(type, val) {
   } else {
     return;
   }
-  // send control and actual val
-  this.board.io.sendI2CWriteRequest(this.ADDRESS, [control, val]);
+
+  if (this.PROTOCOL === 'I2C') {
+    // send control and actual val
+    this.board.io.sendI2CWriteRequest(this.ADDRESS, [control, val]);
+  } else {
+    // send control and actual val
+    // this.shiftRegister.send(control);
+    // this.shiftRegister.send(val);
+    this._writeSPI([control, value]);
+  }
 }
+
+Oled.prototype._writeSPI = function(bytes) {
+
+  var bit, i, misoStatus;
+
+  // - input data is captured on rising edge of SCLK.
+  // - output data is propagated on falling edge of SCLK.
+
+  for (i = 0; i++; i < bytes.length) {
+   
+    for (bit = 0x80; bit; bit >>= 1) {
+      // shift out a bit to the MOSI line 
+      this.mosiPin.write((bytes[i] & bit) ? 255 : 0);
+
+      // delay from low clock time ref here
+
+      // pull clock high
+      this.clkPin.high();
+
+      this.misoPin.query(function(state) {
+          misoStatus = state.value;
+          if (misoStatus === 255) {
+          // shift in a bit from the miso line 
+          bytes[i] |= bit;
+        }
+      }.bind(this));
+
+      // delay from high clock time ref here
+
+      // pull the clock line low 
+      this.clkPin.low();
+    }
+
+  }
+  
+    // keeping here for reference
+    //digitalWrite(cs, HIGH);
+    //*csport |= cspinmask;
+    //digitalWrite(dc, LOW);
+    //*dcport &= ~dcpinmask;
+    //digitalWrite(cs, LOW);
+    //*csport &= ~cspinmask;
+    // fastSPIwrite(c);
+    //digitalWrite(cs, HIGH);
+    //*csport |= cspinmask;
+}
+
+Oled.prototype._pinToPort = function(pin) {
+
+  // keeping here for reference
+  // _BV(1),
+  // _BV(2),
+  // _BV(3),
+  // _BV(4),
+  // _BV(5),
+  // _BV(6),
+  // _BV(7),
+  // _BV(0), /* 8, port B */
+  // _BV(1),
+  // _BV(2),
+  // _BV(3),
+  // _BV(4),
+  // _BV(5),
+  // _BV(0), /* 14, port C */
+  // _BV(1),
+  // _BV(2),
+  // _BV(3),
+  // _BV(4),
+  // _BV(5),
+
+  
+  var ports = [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5];
+  return ports[pin];
+}
+
+Oled.prototype._pinToBitMask = function(pin) {
+  return 1 << this._pinToPort(pin);
+}
+
 
 // read a byte from the oled
 Oled.prototype._readI2C = function(fn) {
@@ -134,7 +296,12 @@ Oled.prototype._waitUntilReady = function(callback) {
     });
   };
 
-  setTimeout(tick(callback), 0);
+  if (this.PROTOCOL !== 'SPI') {
+    setTimeout(tick(callback), 0);
+  } else {
+    console.log('ring ring');
+    callback();
+  }
 }
 
 Oled.prototype.setCursor = function(x, y) {
@@ -261,12 +428,12 @@ Oled.prototype.update = function() {
 
     // send intro seq
     for (i = 0; i < displaySeqLen; i += 1) {
-      this._writeI2C('cmd', displaySeq[i]);
+      this._transfer('cmd', displaySeq[i]);
     }
 
     // write buffer data
     for (v = 0; v < bufferLen; v += 1) {
-      this._writeI2C('data', this.buffer[v]);
+      this._transfer('data', this.buffer[v]);
     }
 
   }.bind(this));
@@ -281,16 +448,16 @@ Oled.prototype.dimDisplay = function(bool) {
     contrast = 0xCF; // High contrast
   }
 
-  this._writeI2C('cmd', this.SET_CONTRAST);
-  this._writeI2C('cmd', contrast);
+  this._transfer('cmd', this.SET_CONTRAST);
+  this._transfer('cmd', contrast);
 }
 
 Oled.prototype.turnOffDisplay = function() {
-  this._writeI2C('cmd', this.DISPLAY_OFF);
+  this._transfer('cmd', this.DISPLAY_OFF);
 }
 
 Oled.prototype.turnOnDisplay = function() {
-  this._writeI2C('cmd', this.DISPLAY_ON);
+  this._transfer('cmd', this.DISPLAY_ON);
 }
 
 Oled.prototype.clearDisplay = function(sync) {
@@ -312,9 +479,9 @@ Oled.prototype.clearDisplay = function(sync) {
 
 Oled.prototype.invertDisplay = function(bool) {
   if (bool) {
-    this._writeI2C('cmd', this.INVERT_DISPLAY); // invert
+    this._transfer('cmd', this.INVERT_DISPLAY); // invert
   } else {
-    this._writeI2C('cmd', this.NORMAL_DISPLAY); // non invert
+    this._transfer('cmd', this.NORMAL_DISPLAY); // non invert
   }
 }
 
@@ -408,10 +575,10 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
         
         // send intro seq
         for (v = 0; v < displaySeqLen; v += 1) {
-          this._writeI2C('cmd', displaySeq[v]);
+          this._transfer('cmd', displaySeq[v]);
         }
         // send byte, then move on to next byte
-        this._writeI2C('data', this.buffer[byte]);
+        this._transfer('data', this.buffer[byte]);
         this.buffer[byte];
       }
     }.bind(this));
@@ -498,13 +665,13 @@ Oled.prototype.startscroll = function(dir, start, stop) {
     var i, cmdSeqLen = cmdSeq.length;
 
     for (i = 0; i < cmdSeqLen; i += 1) {
-      this._writeI2C('cmd', cmdSeq[i]);
+      this._transfer('cmd', cmdSeq[i]);
     }
   }.bind(this));
 }
 
 Oled.prototype.stopscroll = function() {
-  this._writeI2C('cmd', this.DEACTIVATE_SCROLL); // stahp
+  this._transfer('cmd', this.DEACTIVATE_SCROLL); // stahp
 }
 
 module.exports = Oled;
