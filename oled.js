@@ -66,79 +66,12 @@ var Oled = function(board, five, width, height, address, protocol) {
       screenConfig = config[screenSize];
 
   if (this.PROTOCOL === 'I2C') {
-    console.log('using I2C mode');
+    console.log('Oled using I2C protocol');
     // enable i2C in firmata
     this.board.io.sendI2CConfig(0);
   } else {
-    console.log('attempting SPI...');
-
-    // keeping here for reference
-    // this.shiftRegister = new board.ShiftRegister({
-    //   pins: {
-    //     data: 9,
-    //     clock: 10,
-    //     latch: this.ADDRESS
-    //   }
-    // });
-
-    // keeping here for reference
-    // //opcodes
-    // #define WREN  6
-    // #define WRDI  4
-    // #define RDSR  5
-    // #define WRSR  1
-    // #define READ  3
-    // #define WRITE 2 
-
-    // we'll see if I end up needing this controller byte
-    this.spcr = 0;
-
-    // pin refs
-    this.dc = 11;
-    this.ss = 12;
-    this.clk = 10;
-    this.rst = 13;
-    this.mosi = 9;
-
-    // set up spi pins
-    this.dcPin = new five.Pin(this.dc);
-    this.ssPin = new five.Pin(this.ss);
-    this.clkPin = new five.Pin(this.clk);
-    this.mosiPin = new five.Pin(this.mosi);
-    // reset won't be used as it causes a bunch of default initialisations
-    this.rstPin = new five.Pin(this.rst);
-
-    // keeping here for reference
-    // csport      = portOutputRegister(digitalPinToPort(cs));
-    //this.cspinmask = this._pinToBitMask(this.cs);
-    // dcport      = portOutputRegister(digitalPinToPort(dc));
-    //this.dcpinmask = this._pinToBitMask(this.dc);
-    this.rstPin.high();
-    // Set SS to high so a connected chip will be "deselected" by default
-    this.ssPin.high();
-
-    // When the SS pin is set as OUTPUT, it can be used as
-    // a general purpose output port (it doesn't influence
-    // SPI operations).
-    //this.ssPin.OUTPUT();
-    // this.board.pinMode("D12", this.board.io.MODES.OUTPUT);
-    // this.board.pinMode("D10", this.board.io.MODES.OUTPUT);
-    // this.board.pinMode("D9", this.board.io.MODES.OUTPUT);
-
-    // Warning: if the SS pin ever becomes a LOW INPUT then SPI
-    // automatically switches to Slave, so the data direction of
-    // the SS pin MUST be kept as OUTPUT.
-    // this.spcr |= this._spcrPos('MSTR');
-    // this.spcr |= this._spcrPos('SPE');
-
-    // Set direction register for SCK and MOSI pin.
-    // MISO pin automatically overrides to INPUT.
-    // By doing this AFTER enabling SPI, we avoid accidentally
-    // clocking in a single bit since the lines go directly
-    // from "input" to SPI control.  
-    // http://code.google.com/p/arduino/issues/detail?id=888
-    //this.clkPin.OUTPUT();
-    //this.mosiPin.OUTPUT();
+    console.log('Oled using SPI protocol');
+    this._setUpSPI();
   }
 
   // set up the display so it knows what to do
@@ -165,15 +98,32 @@ var Oled = function(board, five, width, height, address, protocol) {
 
   // write init seq commands
   for (i = 0; i < initSeqLen; i ++) {
-      console.log('writing initialisation..');
-      this._transfer('cmd', initSeq[i]);
+    this._transfer('cmd', initSeq[i]);
   }
 }
 
-Oled.prototype._spcrPos = function(val) { 
-  return ['SPR0', 'SPR1', 'CPHA', 'CPOL', 'MSTR', 'DORD', 'SPE', 'SPIE'].indexOf(val);
-};
+Oled.prototype._setUpSPI = function() {
+  // pin refs
+    this.dc = 11;
+    this.ss = this.ADDRESS;
+    this.clk = 10;
+    this.rst = 13;
+    this.mosi = 9;
 
+    // set up spi pins
+    this.dcPin = new this.five.Pin(this.dc);
+    this.ssPin = new this.five.Pin(this.ss);
+    this.clkPin = new this.five.Pin(this.clk);
+    this.mosiPin = new this.five.Pin(this.mosi);
+    // reset won't be used as it causes a bunch of default initialisations
+    this.rstPin = new this.five.Pin(this.rst);
+
+    // get the screen out of default mode
+    this.rstPin.low();
+    this.rstPin.high();
+    // Set SS to high so a connected chip will be "deselected" by default
+    this.ssPin.high();
+}
 
 // writes both commands and data buffers to this device
 Oled.prototype._transfer = function(type, val) {
@@ -190,120 +140,49 @@ Oled.prototype._transfer = function(type, val) {
     // send control and actual val
     this.board.io.sendI2CWriteRequest(this.ADDRESS, [control, val]);
   } else {
-    // send control and actual val
-    // this.shiftRegister.send(control);
-    // this.shiftRegister.send(val);
-    //this._writeSPI([control, val], type);
+    // send val, no control
     this._writeSPI([val], type);
   }
 }
 
 Oled.prototype._writeSPI = function(bytes, mode) {
   var bit, i, misoStatus;
-  // turn on slave select
-  this.ssPin.high();
 
+  // set dc to low if cmd byte, high if data byte
+  if (mode === 'cmd') {
+    this.dcPin.low();
+  } else {
+    this.dcPin.high();
+  }
 
-    if (mode === 'cmd') {
-      this.dcPin.low();
-    } else {
-      this.dcPin.high();
-    }
-
+  // select the device as slave
   this.ssPin.low();
 
   for (i = 0; i < bytes.length; i++) {
-    //console.log('byte', i);
-    
-
-    
-    //console.log('dcpin', mode === 'cmd' ? 0 : 255);
-
-    //for (bit = 0x80; bit; bit >>= 1) {
 
     for (bit = 7; bit >= 0; bit--) {
-      //console.log(bit);
-      //console.log('bit', (bytes[i] & bit) ? 255 : 0);
 
       // pull clock low
       this.clkPin.low();
 
-       // shift out a bit to the MOSI line 
-      //this.mosiPin.write((bytes[i] & bit) ? 255 : 0);
-
+      // shift out a bit for mosi
       if (bytes[i] & (1 << bit)) {
         this.mosiPin.high();
       } else {
         this.mosiPin.low();
       }
 
-      // this.mosiPin.query(function(state) {
-      //     misoStatus = state.value;
-      //     if (misoStatus === 255) {
-      //       console.log('status is high');
-      //     // shift in a bit from the miso line 
-      //     bytes[i] |= bit;
-      //   }
-      // }.bind(this));
-      
-      // if ((bytes[i] & bit)) {
-      //   bytes[i] |= bit;
-      // }
-
-
-      // pull clock high 
+      // pull clock high to collect bit
       this.clkPin.high();
 
     }
-
-    // turn off slave select
-    this.ssPin.high();
+    
   }
-  
-    // keeping here for reference
-    //digitalWrite(cs, HIGH);
-    //*csport |= cspinmask;
-    //digitalWrite(dc, LOW);
-    //*dcport &= ~dcpinmask;
-    //digitalWrite(cs, LOW);
-    //*csport &= ~cspinmask;
-    // fastSPIwrite(c);
-    //digitalWrite(cs, HIGH);
-    //*csport |= cspinmask;
+
+  // turn off slave select so other devices can use SPI
+  // don't be an SPI hogging jerk basically
+  this.ssPin.high();
 }
-
-Oled.prototype._pinToPort = function(pin) {
-
-  // keeping here for reference
-  // _BV(1),
-  // _BV(2),
-  // _BV(3),
-  // _BV(4),
-  // _BV(5),
-  // _BV(6),
-  // _BV(7),
-  // _BV(0), /* 8, port B */
-  // _BV(1),
-  // _BV(2),
-  // _BV(3),
-  // _BV(4),
-  // _BV(5),
-  // _BV(0), /* 14, port C */
-  // _BV(1),
-  // _BV(2),
-  // _BV(3),
-  // _BV(4),
-  // _BV(5),
-
-  
-  var ports = [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5];
-  return ports[pin];
-}
-
-Oled.prototype._pinToBitMask = function(pin) {
-  return 1 << this._pinToPort(pin);
-}
-
 
 // read a byte from the oled
 Oled.prototype._readI2C = function(fn) {
@@ -333,7 +212,6 @@ Oled.prototype._waitUntilReady = function(callback) {
   if (this.PROTOCOL === 'I2C') {
     setTimeout(tick(callback), 0);
   } else {
-    console.log('ring ring');
     callback();
   }
 }

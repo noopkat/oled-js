@@ -9,9 +9,10 @@ var five = require('johnny-five'),
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
 
-  // passing in board as a temp strategy.
-  //var oled = new Oled(board, 128, 32, 0x3C); // 128x32
-  var oled = new Oled(board, 128, 64, 0x3D); // 128x64
+    // passing in board as a temp strategy.
+  //var oled = new Oled(board, five, 128, 32, 0x3C, 'I2C'); // 128x32
+  //var oled = new Oled(board, five, 128, 64, 0x3D, 'I2C'); // 128x64
+  var oled = new Oled(board, five, 128, 64, 12, 'SPI'); // 128x64
   test(oled);
 });
 
