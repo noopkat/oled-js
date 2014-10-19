@@ -3,8 +3,6 @@
 oled js
 ========================
 
-(currently a work in progress)
-
 ## What is this?
 
 This repo is a library compatible with both Firmata.js, and Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C/SPI compatible monochrome OLED screens. Works with 128 x 32, 128 x 64 and 96 x 16 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
