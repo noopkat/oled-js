@@ -14,8 +14,8 @@ var Oled = function(board, five, width, height, address, protocol) {
   this.CHARGE_PUMP = 0x8D;
   this.EXTERNAL_VCC = false;
   this.MEMORY_MODE = 0x20;
-  //this.SEG_REMAP = 0xA0; // this will flip screen
   this.SEG_REMAP = 0xA1;
+  //this.SEG_REMAP = 0xA0; // this will flip screen
   this.COM_SCAN_DEC = 0xC8;
   this.COM_SCAN_INC = 0xC0;
   this.SET_COM_PINS = 0xDA;
@@ -141,12 +141,12 @@ Oled.prototype._transfer = function(type, val) {
     this.board.io.sendI2CWriteRequest(this.ADDRESS, [control, val]);
   } else {
     // send val, no control
-    this._writeSPI([val], type);
+    this._writeSPI(val, type);
   }
 }
 
-Oled.prototype._writeSPI = function(bytes, mode) {
-  var bit, i, misoStatus;
+Oled.prototype._writeSPI = function(byte, mode) {
+  var bit;
 
   // set dc to low if cmd byte, high if data byte
   if (mode === 'cmd') {
@@ -158,25 +158,21 @@ Oled.prototype._writeSPI = function(bytes, mode) {
   // select the device as slave
   this.ssPin.low();
 
-  for (i = 0; i < bytes.length; i++) {
+  for (bit = 7; bit >= 0; bit--) {
 
-    for (bit = 7; bit >= 0; bit--) {
+    // pull clock low
+    this.clkPin.low();
 
-      // pull clock low
-      this.clkPin.low();
-
-      // shift out a bit for mosi
-      if (bytes[i] & (1 << bit)) {
-        this.mosiPin.high();
-      } else {
-        this.mosiPin.low();
-      }
-
-      // pull clock high to collect bit
-      this.clkPin.high();
-
+    // shift out a bit for mosi
+    if (byte & (1 << bit)) {
+      this.mosiPin.high();
+    } else {
+      this.mosiPin.low();
     }
-    
+
+    // pull clock high to collect bit
+    this.clkPin.high();
+
   }
 
   // turn off slave select so other devices can use SPI
