@@ -59,7 +59,8 @@ var Oled = function(board, width, height, address) {
     }
   };
 
-  var screenSize = this.WIDTH + 'x' + this.HEIGHT;
+  var screenSize = this.WIDTH + 'x' + this.HEIGHT,
+      screenConfig = config[screenSize];
 
   // enable i2C in firmata
   this.board.io.sendI2CConfig(0);
@@ -68,14 +69,14 @@ var Oled = function(board, width, height, address) {
   var initSeq = [
     this.DISPLAY_OFF,
     this.SET_DISPLAY_CLOCK_DIV, 0x80,
-    this.SET_MULTIPLEX, config[screenSize].multiplex, // set the last value dynamically based on screen size requirement
+    this.SET_MULTIPLEX, screenConfig.multiplex, // set the last value dynamically based on screen size requirement
     this.SET_DISPLAY_OFFSET, 0x0, // sets offset pro to 0
     this.SET_START_LINE,
     this.CHARGE_PUMP, 0x14, // charge pump val
     this.MEMORY_MODE, 0x00, // 0x0 act like ks0108
     this.SEG_REMAP, // screen orientation
     this.COM_SCAN_INC, // screen orientation
-    this.SET_COM_PINS, config[screenSize].compins, // com pins val sets dynamically to match each screen size requirement
+    this.SET_COM_PINS, screenConfig.compins, // com pins val sets dynamically to match each screen size requirement
     this.SET_CONTRAST, 0x8F, // contrast val
     this.SET_PRECHARGE, 0xF1, // precharge val
     this.SET_VCOM_DETECT, 0x40, // vcom detect
