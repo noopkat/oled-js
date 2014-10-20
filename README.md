@@ -52,7 +52,7 @@ Yeah this sounds like a nightmare, but it's pretty simple! Before uploading stan
 
 ## SPI screens
 
-**IMPORTANT NOTE: Using SPI will make your screen update and draw VERY slow. Manual hardware SPI over USB is the only way currently to do this within Johnny-Five, which is not optimized for the normal speed you can expect from SPI in general. Sorry about that.**
+**IMPORTANT NOTE: Using SPI will make your screen update and draw VERY slow. Manual hardware SPI over USB is the only way currently to do this within Johnny-Five, which is not optimized for the normal speed you can expect from SPI in general. Sorry about that. [Here is a video I took to show this](https://www.youtube.com/watch?v=wHCxlYx2bZY).**
 
 Hook up SPI compatible oled to the Arduino. If using an Arduino Uno, pins are as follows:
 
