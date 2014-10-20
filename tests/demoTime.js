@@ -9,9 +9,10 @@ var five = require('johnny-five'),
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
 
-  //var oled = new Oled(board, five, 128, 32, 0x3C, 'I2C'); // 128x32
-  //var oled = new Oled(board, five, 128, 64, 0x3D, 'I2C'); // 128x64
-  var oled = new Oled(board, five, 128, 64, 12, 'SPI'); // 128x64
+  //var oled = new Oled(board, five, 128, 32, 0x3C, 'I2C'); // 128x32 I2C
+  //var oled = new Oled(board, five, 128, 64, 0x3D, 'I2C'); // 128x64 I2C
+  //var oled = new Oled(board, five, 64, 48, 12, 'microview'); // microview SPI
+  var oled = new Oled(board, five, 128, 64, 12, 'SPI'); // 128x64 SPI
   test(oled);
 });
 
@@ -87,7 +88,7 @@ function test(oled) {
         // display text
         oled.setCursor(0, 7);
         oled.writeString(font, 2, 'SCROLL!', 1, true);
-        oled.startscroll('right', 0, 3);
+        oled.startscroll('left', 0, 6);
       }
     }
   ]);

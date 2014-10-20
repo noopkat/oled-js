@@ -51,20 +51,24 @@ var Oled = function(board, five, width, height, address, protocol) {
   var config = {
     '128x32': {
       'multiplex': 0x1F,
-      'compins': 0x02
+      'compins': 0x02,
+      'coloffset': 0
     },
     '128x64': {
       'multiplex': 0x3F,
-      'compins': 0x12
+      'compins': 0x12,
+      'coloffset': 0
     },
     '96x16': {
       'multiplex': 0x0F,
-      'compins': 0x2
+      'compins': 0x2,
+      'coloffset': 0,
     },
     // this is the microview, currently wip
     '64x48': {
       'multiplex': 0x2F,
-      'compins': 0x2
+      'compins': 0x12,
+      'coloffset': 32
     }
   };
 
@@ -89,8 +93,8 @@ var Oled = function(board, five, width, height, address, protocol) {
     };
   }
 
-  var screenSize = this.WIDTH + 'x' + this.HEIGHT,
-      screenConfig = config[screenSize];
+  var screenSize = this.WIDTH + 'x' + this.HEIGHT;
+  this.screenConfig = config[screenSize];
 
   if (this.PROTOCOL === 'I2C') {
     console.log('Oled using I2C protocol');
@@ -105,14 +109,14 @@ var Oled = function(board, five, width, height, address, protocol) {
   var initSeq = [
     this.DISPLAY_OFF,
     this.SET_DISPLAY_CLOCK_DIV, 0x80,
-    this.SET_MULTIPLEX, screenConfig.multiplex, // set the last value dynamically based on screen size requirement
-    this.SET_DISPLAY_OFFSET, 0x0, // sets offset pro to 0
+    this.SET_MULTIPLEX, this.screenConfig.multiplex, // set the last value dynamically based on screen size requirement
+    this.SET_DISPLAY_OFFSET, 0x00, // sets offset pro to 0
     this.SET_START_LINE,
     this.CHARGE_PUMP, 0x14, // charge pump val
     this.MEMORY_MODE, 0x00, // 0x0 act like ks0108
     this.SEG_REMAP, // screen orientation
     this.COM_SCAN_DEC, // screen orientation change to INC to flip
-    this.SET_COM_PINS, screenConfig.compins, // com pins val sets dynamically to match each screen size requirement
+    this.SET_COM_PINS, this.screenConfig.compins, // com pins val sets dynamically to match each screen size requirement
     this.SET_CONTRAST, 0x8F, // contrast val
     this.SET_PRECHARGE, 0xF1, // precharge val
     this.SET_VCOM_DETECT, 0x40, // vcom detect
@@ -347,7 +351,7 @@ Oled.prototype.update = function() {
   // TODO: either keep this, or push asynchronous handling onto the consumer
   this._waitUntilReady(function() {
     var displaySeq = [
-      this.COLUMN_ADDR, 0, this.WIDTH - 1, // column start and end address 
+      this.COLUMN_ADDR, this.screenConfig.coloffset, this.screenConfig.coloffset + this.WIDTH - 1, // column start and end address 
       this.PAGE_ADDR, 0, (this.HEIGHT / 8) - 1 // page start and end address
     ];
 

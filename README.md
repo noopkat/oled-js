@@ -7,7 +7,9 @@ oled js
 
 ## What is this?
 
-This repo is a library compatible with Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C/SPI compatible monochrome OLED screens. Works with 128 x 32, 128 x 64 and 96 x 16 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
+This repo is a library compatible with Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C/SPI compatible monochrome OLED screens. Works with 128 x 32, 128 x 64 and 96 x 16 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)). 
+
+Got a [MicroView](https://www.sparkfun.com/products/12923) from GeekAmmo/SparkFun? That'll work too.
 
 OLED screens are really cool - now you can control them with JavaScript!
 
@@ -82,6 +84,35 @@ board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
   
   var oled = new Oled(board, five, 128, 32, 12, 'SPI'); // args: (board, five, width, height, SPI CS/SS pin, protocol)
+  // do cool oled things here
+});
+    
+```
+
+## MicroView
+
+**MicroView uses SPI, so please see the note about drawing speed in the SPI section above.**
+
+This one is pretty simple - use the USB programmer that should have come with your MicroView. Insert the MicroView's header pins into the slots on the programmer. Plug it in via USB, and you're done! No pin mappings, no sweat.
+
+If you'd like to run the demo:
+
+1. `git clone` this repo (get latest release instead of master branch)
+2. `npm install`
+3. Replace width, height, address and protocol params with your own in tests/demoTime.js
+4. `node tests/demoTime.js`    
+
+### Microview example
+
+```javascript
+var five = require('johnny-five'),
+    board = new five.Board(),
+    Oled = require('oled-js');
+    
+board.on('ready', function() {
+  console.log('Connected to Arduino, ready.');
+  
+  var oled = new Oled(board, five, 64, 48, 10, 'microview'); // args: (board, five, width, height, microview address, protocol)
   // do cool oled things here
 });
     
