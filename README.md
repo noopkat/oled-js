@@ -39,7 +39,7 @@ var five = require('johnny-five'),
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
   
-  var oled = new Oled(board, five, 128, 32, 0x3C, 'I2C'); // args: (board, width, height, I2C address, protocol)
+  var oled = new Oled(board, five, 128, 32, 0x3C, 'I2C'); // args: (board, five, width, height, I2C address, protocol)
   // do cool oled things here
 });
     
@@ -79,7 +79,7 @@ var five = require('johnny-five'),
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
   
-  var oled = new Oled(board, five, 128, 32, 12, 'SPI'); // args: (board, width, height, SPI CS/SS pin, protocol)
+  var oled = new Oled(board, five, 128, 32, 12, 'SPI'); // args: (board, five, width, height, SPI CS/SS pin, protocol)
   // do cool oled things here
 });
     
