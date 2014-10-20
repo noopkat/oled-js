@@ -46,7 +46,7 @@ function test(oled) {
       task: function() {
         oled.clearDisplay();
         // display a bitmap
-        pngtolcd(__dirname + '/images/cat.png', true, function(err, bitmapbuf) {
+        pngtolcd(__dirname + '/images/cat-128x64.png', true, function(err, bitmapbuf) {
           oled.buffer = bitmapbuf;
           oled.update();
         });
