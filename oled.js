@@ -231,7 +231,11 @@ Oled.prototype._waitUntilReady = function(callback) {
   };
 
   if (this.PROTOCOL === 'I2C') {
-    setTimeout(tick(callback), 0);
+    if (this.board.port === 'BLE') {
+      callback();
+    } else {
+     setTimeout(tick(callback), 0);
+    }
   } else {
     callback();
   }
