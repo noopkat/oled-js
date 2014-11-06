@@ -11,7 +11,9 @@ This repo is a library compatible with Rick Waldron's [johnny-five](https://gith
 
 Got a [MicroView](https://www.sparkfun.com/products/12923) from GeekAmmo/SparkFun? That'll work too.
 
-OLED screens are really cool - now you can control them with JavaScript!
+Interested in the nerdy bits going on behind the scenes? [Read my blog post about how OLED screens work](http://meow.noopkat.com/oled-js/)!
+
+OLED screens are really cool - now you can control them with JavaScript! 
 
 ## Install 
 
