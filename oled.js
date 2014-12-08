@@ -1,10 +1,10 @@
-var Oled = function(board, five, width, height, address, protocol) {
+var Oled = function(board, five, width, height, address) {
 
   // create command buffers
   this.HEIGHT = height;
   this.WIDTH = width;
   this.ADDRESS = address || 0x3C;
-  this.PROTOCOL = protocol;
+  this.PROTOCOL = (address) ? 'I2C' : 'SPI';
   this.DISPLAY_OFF = 0xAE;
   this.DISPLAY_ON = 0xAF;
   this.SET_DISPLAY_CLOCK_DIV = 0xD5;
