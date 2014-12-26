@@ -7,6 +7,7 @@ var Oled = function(board, five, opts) {
   this.ADDRESS = opts.address || 0x3C;
   this.PROTOCOL = (opts.address) ? 'I2C' : 'SPI';
   this.MICROVIEW = ((this.HEIGHT === 48) && (this.WIDTH === 64));
+  this.SLAVEPIN = opts.slavePin || 12;
 
   this.DISPLAY_OFF = 0xAE;
   this.DISPLAY_ON = 0xAF;
@@ -88,7 +89,7 @@ var Oled = function(board, five, opts) {
     // generic spi pins
     this.SPIconfig = {
       'dcPin': 11,
-      'ssPin': opts.slavePin || 12,
+      'ssPin': this.SLAVEPIN || 12,
       'rstPin': 13,
       'clkPin': 10,
       'mosiPin': 9
