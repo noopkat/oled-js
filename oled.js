@@ -1,10 +1,12 @@
-var Oled = function(board, five, width, height, address) {
+// var Oled = function(board, five, width, height, address) {
+var Oled = function(board, five, opts) {
 
   // create command buffers
-  this.HEIGHT = height;
-  this.WIDTH = width;
-  this.ADDRESS = address || 0x3C;
-  this.PROTOCOL = (address) ? 'I2C' : 'SPI';
+  this.HEIGHT = opts.height || 32;
+  this.WIDTH = opts.width || 128;
+  this.ADDRESS = opts.address || 0x3C;
+  this.PROTOCOL = (this.ADDRESS) ? 'I2C' : 'SPI';
+
   this.DISPLAY_OFF = 0xAE;
   this.DISPLAY_ON = 0xAF;
   this.SET_DISPLAY_CLOCK_DIV = 0xD5;
@@ -86,7 +88,7 @@ var Oled = function(board, five, width, height, address) {
     // generic spi pins
     this.SPIconfig = {
       'dcPin': 11,
-      'ssPin': this.ADDRESS,
+      'ssPin': opts.slavePin || 12,
       'rstPin': 13,
       'clkPin': 10,
       'mosiPin': 9
@@ -165,7 +167,7 @@ Oled.prototype._transfer = function(type, val) {
     // send control and actual val
     this.board.io.sendI2CWriteRequest(this.ADDRESS, [control, val]);
   } else {
-    // send val, no control
+    // send val via SPI, no control byte
     this._writeSPI(val, type);
   }
 }
@@ -173,7 +175,7 @@ Oled.prototype._transfer = function(type, val) {
 Oled.prototype._writeSPI = function(byte, mode) {
   var bit;
 
-  // set dc to low if cmd byte, high if data byte
+  // set dc to low if command byte, high if data byte
   if (mode === 'cmd') {
     this.dcPin.low();
   } else {
@@ -212,6 +214,8 @@ Oled.prototype._readI2C = function(fn) {
   });
 }
 
+// sometimes the oled gets a bit busy with lots of bytes. 
+// Read the response byte to see if this is the case
 Oled.prototype._waitUntilReady = function(callback) {
   var done,
       oled = this;
@@ -231,6 +235,8 @@ Oled.prototype._waitUntilReady = function(callback) {
   };
 
   if (this.PROTOCOL === 'I2C') {
+    // this ble conditional is going to have to be canned. 
+    // expecting all BLE j5 io's to be able to read a byte via I2C should be reasonable.
     if (this.board.port === 'BLE') {
       callback();
     } else {
@@ -241,11 +247,13 @@ Oled.prototype._waitUntilReady = function(callback) {
   }
 }
 
+// set starting position of a text string on the oled
 Oled.prototype.setCursor = function(x, y) {
   this.cursor_x = x;
   this.cursor_y = y;
 }
 
+// write text to the oled
 Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
   var wordArr = string.split(' '),
@@ -296,6 +304,7 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
   }
 }
 
+// draw an individual character to the screen
 Oled.prototype._drawChar = function(byteArray, size, sync) {
   // take your positions...
   var x = this.cursor_x,
@@ -322,6 +331,7 @@ Oled.prototype._drawChar = function(byteArray, size, sync) {
   }
 }
 
+// get character bytes from the supplied font object in order to send to framebuffer
 Oled.prototype._readCharBytes = function(byteArray) {
   var bitArr = [],
       bitCharArr = [];
@@ -343,6 +353,7 @@ Oled.prototype._readCharBytes = function(byteArray) {
   return bitCharArr;
 }
 
+// find where the character exists within the font object
 Oled.prototype._findCharBuf = function(font, c) {
   // use the lookup array as a ref to find where the current char bytes start
   var cBufPos = font.lookup.indexOf(c) * font.width;
@@ -351,11 +362,15 @@ Oled.prototype._findCharBuf = function(font, c) {
   return cBuf;
 }
 
+// send the entire framebuffer to the oled
 Oled.prototype.update = function() {
-  // TODO: either keep this, or push asynchronous handling onto the consumer
+  // wait for oled to be ready
   this._waitUntilReady(function() {
+    // set the start and endbyte locations for oled display update
     var displaySeq = [
-      this.COLUMN_ADDR, this.screenConfig.coloffset, this.screenConfig.coloffset + this.WIDTH - 1, // column start and end address 
+      this.COLUMN_ADDR, 
+      this.screenConfig.coloffset, 
+      this.screenConfig.coloffset + this.WIDTH - 1, // column start and end address 
       this.PAGE_ADDR, 0, (this.HEIGHT / 8) - 1 // page start and end address
     ];
 
@@ -376,27 +391,31 @@ Oled.prototype.update = function() {
   }.bind(this));
 }
 
+// send dim display command to oled
 Oled.prototype.dimDisplay = function(bool) {
   var contrast;
 
   if (bool) {
     contrast = 0; // Dimmed display
   } else {
-    contrast = 0xCF; // High contrast
+    contrast = 0xCF; // Bright display
   }
 
   this._transfer('cmd', this.SET_CONTRAST);
   this._transfer('cmd', contrast);
 }
 
+// turn oled off
 Oled.prototype.turnOffDisplay = function() {
   this._transfer('cmd', this.DISPLAY_OFF);
 }
 
+// turn oled on
 Oled.prototype.turnOnDisplay = function() {
   this._transfer('cmd', this.DISPLAY_ON);
 }
 
+// clear all pixels currently on the display
 Oled.prototype.clearDisplay = function(sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
   // write off pixels
@@ -414,14 +433,16 @@ Oled.prototype.clearDisplay = function(sync) {
   }
 }
 
+// invert pixels on oled
 Oled.prototype.invertDisplay = function(bool) {
   if (bool) {
-    this._transfer('cmd', this.INVERT_DISPLAY); // invert
+    this._transfer('cmd', this.INVERT_DISPLAY); // inverted
   } else {
-    this._transfer('cmd', this.NORMAL_DISPLAY); // non invert
+    this._transfer('cmd', this.NORMAL_DISPLAY); // non inverted
   }
 }
 
+// draw an image pixel array on the screen
 Oled.prototype.drawBitmap = function(pixels, sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
   var x, y,
@@ -439,6 +460,7 @@ Oled.prototype.drawBitmap = function(pixels, sync) {
   }
 }
 
+// draw one or many pixels on oled
 Oled.prototype.drawPixel = function(pixels, sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
 
@@ -480,19 +502,18 @@ Oled.prototype.drawPixel = function(pixels, sync) {
   }
 }
 
-// looks at dirty bytes, and sends the updated byte to the display
+// looks at dirty bytes, and sends the updated bytes to the display
 Oled.prototype._updateDirtyBytes = function(byteArray) {
   var blen = byteArray.length, i,
       displaySeq = [];
 
   // check to see if this will even save time
   if (blen > (this.buffer.length / 7)) {
-    // now that all bytes are synced, reset dirty state
-    this.dirtyBytes = [];
     // just call regular update at this stage, saves on bytes sent
     this.update();
+    // now that all bytes are synced, reset dirty state
+    this.dirtyBytes = [];
 
-    //return;
   } else {
 
     this._waitUntilReady(function() {
@@ -526,7 +547,6 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
 
 // using Bresenham's line algorithm
 Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
-
   var immed = (typeof sync === 'undefined') ? true : sync;
 
   var dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1,
@@ -549,6 +569,7 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
   }
 }
 
+// draw a filled rectangle on the oled
 Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
   // one iteration for each column of the rectangle
@@ -561,7 +582,7 @@ Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
   }
 }
 
-// activate a right handed scroll for rows start through stop
+// activate scrolling for rows start through stop
 Oled.prototype.startscroll = function(dir, start, stop) {
   var scrollHeader,
       cmdSeq = [];
@@ -589,12 +610,11 @@ Oled.prototype.startscroll = function(dir, start, stop) {
       break;
   }
 
-  // TODO: either keep this, or push asynchronous handling onto the consumer
   this._waitUntilReady(function() {
     cmdSeq.push(
       0x00, start,
       0x00, stop,
-      // TODO: these need to change when diag
+      // TODO: these need to change when diagonal
       0x00, 0xFF,
       this.ACTIVATE_SCROLL
     );
@@ -607,6 +627,7 @@ Oled.prototype.startscroll = function(dir, start, stop) {
   }.bind(this));
 }
 
+// stop scrolling display contents
 Oled.prototype.stopscroll = function() {
   this._transfer('cmd', this.DEACTIVATE_SCROLL); // stahp
 }
