@@ -13,14 +13,14 @@ var board = new five.Board({
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
 
-  //var oled = new Oled(board, five, 128, 32, 0x3C, 'I2C'); // 128x32 I2C
-  //var oled = new Oled(board, five, 128, 64, 0x3D, 'I2C'); // 128x64 I2C
-  //var oled = new Oled(board, five, 64, 48, 12, 'microview'); // microview SPI
-  var oled = new Oled(board, five, {
-                        width: 128,
-                        height: 64, 
-                        address: 0x3D
-                      }); // 128x64 SPI
+  var opts = {
+    width: 128,
+    height: 64, 
+    address: 0x3D
+  }
+
+  var oled = new Oled(board, five, opts); 
+
   test(oled);
 });
 
