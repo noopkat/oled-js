@@ -89,7 +89,7 @@ var Oled = function(board, five, opts) {
     // generic spi pins
     this.SPIconfig = {
       'dcPin': 11,
-      'ssPin': this.SLAVEPIN || 12,
+      'ssPin': this.SLAVEPIN,
       'rstPin': 13,
       'clkPin': 10,
       'mosiPin': 9
