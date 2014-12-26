@@ -5,7 +5,8 @@ var Oled = function(board, five, opts) {
   this.HEIGHT = opts.height || 32;
   this.WIDTH = opts.width || 128;
   this.ADDRESS = opts.address || 0x3C;
-  this.PROTOCOL = (this.ADDRESS) ? 'I2C' : 'SPI';
+  this.PROTOCOL = (opts.address) ? 'I2C' : 'SPI';
+  this.MICROVIEW = ((this.HEIGHT === 48) && (this.WIDTH === 64));
 
   this.DISPLAY_OFF = 0xAE;
   this.DISPLAY_ON = 0xAF;
@@ -16,8 +17,7 @@ var Oled = function(board, five, opts) {
   this.CHARGE_PUMP = 0x8D;
   this.EXTERNAL_VCC = false;
   this.MEMORY_MODE = 0x20;
-  this.SEG_REMAP = 0xA1;
-  //this.SEG_REMAP = 0xA0; // this will flip screen
+  this.SEG_REMAP = 0xA1; // using 0xA0 will flip screen
   this.COM_SCAN_DEC = 0xC8;
   this.COM_SCAN_INC = 0xC0;
   this.SET_COM_PINS = 0xDA;
@@ -75,7 +75,7 @@ var Oled = function(board, five, opts) {
   };
 
   // microview is wip
-  if (protocol === 'microview') {
+  if (this.MICROVIEW) {
     // microview spi pins
     this.SPIconfig = {   
       'dcPin': 8,
@@ -84,7 +84,7 @@ var Oled = function(board, five, opts) {
       'clkPin': 13,
       'mosiPin': 11
     };
-  } else {
+  } else if (this.PROTOCOL === 'SPI') {
     // generic spi pins
     this.SPIconfig = {
       'dcPin': 11,
@@ -235,13 +235,7 @@ Oled.prototype._waitUntilReady = function(callback) {
   };
 
   if (this.PROTOCOL === 'I2C') {
-    // this ble conditional is going to have to be canned. 
-    // expecting all BLE j5 io's to be able to read a byte via I2C should be reasonable.
-    if (this.board.port === 'BLE') {
-      callback();
-    } else {
-     setTimeout(tick(callback), 0);
-    }
+    setTimeout(tick(callback), 0);
   } else {
     callback();
   }
