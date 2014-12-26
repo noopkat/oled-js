@@ -28,7 +28,7 @@ board.on('ready', function() {
 function test(oled) {
 
   // if it was already scrolling, stop
-  oled.stopscroll();
+  oled.stopScroll();
 
   // clear first just in case
   oled.update();
@@ -96,7 +96,7 @@ function test(oled) {
         // display text
         oled.setCursor(0, 7);
         oled.writeString(font, 2, 'SCROLL!', 1, true);
-        oled.startscroll('left', 0, 6);
+        oled.startScroll('left', 0, 6);
       }
     }
   ]);

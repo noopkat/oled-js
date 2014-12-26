@@ -576,7 +576,7 @@ Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
 }
 
 // activate scrolling for rows start through stop
-Oled.prototype.startscroll = function(dir, start, stop) {
+Oled.prototype.startScroll = function(dir, start, stop) {
   var scrollHeader,
       cmdSeq = [];
 
@@ -621,7 +621,7 @@ Oled.prototype.startscroll = function(dir, start, stop) {
 }
 
 // stop scrolling display contents
-Oled.prototype.stopscroll = function() {
+Oled.prototype.stopScroll = function() {
   this._transfer('cmd', this.DEACTIVATE_SCROLL); // stahp
 }
 
