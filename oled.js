@@ -6,7 +6,7 @@ var Oled = function(board, five, opts) {
   this.WIDTH = opts.width || 128;
   this.ADDRESS = opts.address || 0x3C;
   this.PROTOCOL = (opts.address) ? 'I2C' : 'SPI';
-  this.MICROVIEW = ((this.HEIGHT === 48) && (this.WIDTH === 64));
+  this.MICROVIEW = opts.microview || false;
   this.SLAVEPIN = opts.slavePin || 12;
 
   this.DISPLAY_OFF = 0xAE;
@@ -67,11 +67,11 @@ var Oled = function(board, five, opts) {
       'compins': 0x2,
       'coloffset': 0,
     },
-    // this is the microview, currently wip
+    // this is blended microview / normal 64 x 48, currently wip
     '64x48': {
       'multiplex': 0x2F,
       'compins': 0x12,
-      'coloffset': 32
+      'coloffset': (this.MICROVIEW) ? 32 : 0
     }
   };
 
@@ -100,11 +100,9 @@ var Oled = function(board, five, opts) {
   this.screenConfig = config[screenSize];
 
   if (this.PROTOCOL === 'I2C') {
-    console.log('Oled using I2C protocol');
     // enable i2C in firmata
     this.board.io.sendI2CConfig(0);
   } else {
-    console.log('Oled using SPI protocol');
     this._setUpSPI();
   }
 
