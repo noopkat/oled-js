@@ -13,7 +13,7 @@ board.on('ready', function() {
     width: 128,
     height: 64, 
     address: 0x3D
-  }
+  };
 
   var oled = new Oled(board, five, opts);
 

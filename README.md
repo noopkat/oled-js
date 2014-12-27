@@ -15,8 +15,9 @@ OLED screens are really cool - now you can control them with JavaScript!
 
 ## Install 
 
+If you haven't already, install [NodeJS](http://nodejs.org/) and the [Arduino IDE](http://arduino.cc/en/Main/Software) to your computer.
 1. `npm install oled-js`
-2. Upload standard firmata lib to an Arduino of choice
+2. Upload the Standard Firmata sketch (prepackaged with the Arduino IDE) to your Arduino of choice. This can be found under ``File > Examples > Firmata > StandardFirmata`` [[ further help]](http://arduino.cc/en/Guide/HomePage)
 
 ## I2C screens
 Hook up I2C compatible oled to the Arduino. If using an Arduino Uno, pins are as follows:
@@ -30,7 +31,7 @@ If you'd like to run the demo:
 
 1. `git clone` this repo (get latest release instead of master branch)
 2. `npm install`
-3. Replace width, height, address and protocol params with your own in tests/demoTime.js
+3. Replace width, height, and other values in the options with your own in tests/demoTime.js
 4. `node tests/demoTime.js`    
 
 ### I2C example
@@ -43,7 +44,13 @@ var five = require('johnny-five'),
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
   
-  var oled = new Oled(board, five, 128, 32, 0x3C, 'I2C'); // args: (board, five, width, height, I2C address, protocol)
+  var opts = {
+    width: 128,
+    height: 64, 
+    address: 0x3D
+  };
+
+  var oled = new Oled(board, five, opts);
   // do cool oled things here
 });
     
@@ -66,13 +73,6 @@ Hook up SPI compatible oled to the Arduino. If using an Arduino Uno, pins are as
 
 Fritzing diagram coming soon.
 
-If you'd like to run the demo:
-
-1. `git clone` this repo (get latest release instead of master branch)
-2. `npm install`
-3. Replace width, height, address (CS/SS pin), and protocol params with your own in tests/demoTime.js
-4. `node tests/demoTime.js`    
-
 #### SPI example
 
 ```javascript
@@ -82,8 +82,14 @@ var five = require('johnny-five'),
     
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
+
+  var opts = {
+    width: 128,
+    height: 64, 
+    slavePin: 12
+  };
   
-  var oled = new Oled(board, five, 128, 32, 12, 'SPI'); // args: (board, five, width, height, SPI CS/SS pin, protocol)
+  var oled = new Oled(board, five, opts);
   // do cool oled things here
 });
     
@@ -93,14 +99,7 @@ board.on('ready', function() {
 
 **MicroView uses SPI, so please see the note about drawing speed in the SPI section above.**
 
-This one is pretty simple - use the USB programmer that should have come with your MicroView. Insert the MicroView's header pins into the slots on the programmer. Plug it in via USB, and you're done! No pin mappings, no sweat.
-
-If you'd like to run the demo:
-
-1. `git clone` this repo (get latest release instead of master branch)
-2. `npm install`
-3. Replace width, height, address and protocol params with your own in tests/demoTime.js
-4. `node tests/demoTime.js`    
+This one is pretty simple - use the USB programmer that should have come with your MicroView. Insert the MicroView's header pins into the slots on the USB programmer. Plug it in to your nearest USB port, and you're done! No pin mappings, no sweat.
 
 ### Microview example
 
@@ -111,8 +110,14 @@ var five = require('johnny-five'),
     
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
+
+  var opts = {
+    width: 64,
+    height: 48, 
+    microview: true
+  };
   
-  var oled = new Oled(board, five, 64, 48, 10, 'microview'); // args: (board, five, width, height, microview address, protocol)
+  var oled = new Oled(board, five, opts);
   // do cool oled things here
 });
     
