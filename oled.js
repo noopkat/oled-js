@@ -1,7 +1,5 @@
-// var Oled = function(board, five, width, height, address) {
 var Oled = function(board, five, opts) {
 
-  // create command buffers
   this.HEIGHT = opts.height || 32;
   this.WIDTH = opts.width || 128;
   this.ADDRESS = opts.address || 0x3C;
@@ -9,6 +7,7 @@ var Oled = function(board, five, opts) {
   this.MICROVIEW = opts.microview || false;
   this.SLAVEPIN = opts.slavePin || 12;
 
+  // create command buffers
   this.DISPLAY_OFF = 0xAE;
   this.DISPLAY_ON = 0xAF;
   this.SET_DISPLAY_CLOCK_DIV = 0xD5;
