@@ -105,7 +105,12 @@ var Oled = function(board, five, opts) {
     this._setUpSPI();
   }
 
-  // set up the display so it knows what to do
+  this._initialise();
+}
+
+Oled.prototype._initialise = function() {
+
+  // sequence of bytes to initialise with
   var initSeq = [
     this.DISPLAY_OFF,
     this.SET_DISPLAY_CLOCK_DIV, 0x80,
