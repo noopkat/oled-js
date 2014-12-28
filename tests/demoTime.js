@@ -9,10 +9,25 @@ var five = require('johnny-five'),
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
 
-   var opts = {
-    width: 128,
-    height: 64, 
-    address: 0x3D
+  // I2C va USB
+  // var opts = {
+  //   width: 128,
+  //   height: 64, 
+  //   address: 0x3D
+  // };
+
+  // SPI via USB
+  // var opts = {
+  //   width: 128,
+  //   height: 64, 
+  //   slavePin: 12
+  // };
+
+  // SPI Microview via USB
+  var opts = {
+    width: 64,
+    height: 48, 
+    microview: true
   };
 
   var oled = new Oled(board, five, opts);
@@ -47,7 +62,7 @@ function test(oled) {
       }
     },
     {
-      delay: 3000,
+      delay: 10000,
       task: function() {
         oled.clearDisplay();
         // display a bitmap
@@ -59,7 +74,7 @@ function test(oled) {
       }
     },
     {
-      delay: 3000,
+      delay: 10000,
       task: function() {
         oled.clearDisplay();
         // display text
@@ -68,7 +83,7 @@ function test(oled) {
       }
     },
     {
-      delay: 3000,
+      delay: 10000,
       task: function() {
         oled.clearDisplay();
         // draw some lines
@@ -78,7 +93,7 @@ function test(oled) {
       }
     },
     {
-      delay: 3000,
+      delay: 10000,
       task: function() {
         oled.clearDisplay();
         // draw a rectangle
@@ -86,7 +101,7 @@ function test(oled) {
       }
     },
     {
-      delay: 3000,
+      delay: 10000,
       task: function() {
         oled.clearDisplay();
         // display text
