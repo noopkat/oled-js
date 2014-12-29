@@ -18,6 +18,7 @@ OLED screens are really cool - now you can control them with JavaScript!
 ## Install 
 
 If you haven't already, install [NodeJS](http://nodejs.org/) and the [Arduino IDE](http://arduino.cc/en/Main/Software) to your computer.
+
 1. `npm install oled-js`
 2. Upload the Standard Firmata sketch (prepackaged with the Arduino IDE) to your Arduino of choice. This can be found under ``File > Examples > Firmata > StandardFirmata`` [[ further help]](http://arduino.cc/en/Guide/HomePage)
 
