@@ -77,7 +77,7 @@ var Oled = function(board, five, opts) {
   // microview is wip
   if (this.MICROVIEW) {
     // microview spi pins
-    this.SPIconfig = {   
+    this.SPIconfig = {
       'dcPin': 8,
       'ssPin': 10,
       'rstPin': 7,
@@ -100,7 +100,7 @@ var Oled = function(board, five, opts) {
 
   if (this.PROTOCOL === 'I2C') {
     // enable i2C in firmata
-    this.board.io.sendI2CConfig(0);
+    this.board.io.i2cConfig(0);
   } else {
     this._setUpSPI();
   }
@@ -168,7 +168,7 @@ Oled.prototype._transfer = function(type, val) {
 
   if (this.PROTOCOL === 'I2C') {
     // send control and actual val
-    this.board.io.sendI2CWriteRequest(this.ADDRESS, [control, val]);
+    this.board.io.i2cWrite(this.ADDRESS, [control, val]);
   } else {
     // send val via SPI, no control byte
     this._writeSPI(val, type);
@@ -212,12 +212,12 @@ Oled.prototype._writeSPI = function(byte, mode) {
 
 // read a byte from the oled
 Oled.prototype._readI2C = function(fn) {
-  this.board.io.sendI2CReadRequest(this.ADDRESS, 1, function(data) {
+  this.board.io.i2cReadOnce(this.ADDRESS, 1, function(data) {
     fn(data);
   });
 }
 
-// sometimes the oled gets a bit busy with lots of bytes. 
+// sometimes the oled gets a bit busy with lots of bytes.
 // Read the response byte to see if this is the case
 Oled.prototype._waitUntilReady = function(callback) {
   var done,
@@ -290,7 +290,7 @@ Oled.prototype.writeString = function(font, size, string, color, wrap, sync) {
       // wrap letters if necessary
       if (wrap && (offset >= (this.WIDTH - font.width - letspace))) {
         offset = 1;
-        this.cursor_y += (font.height * size) + size + leading; 
+        this.cursor_y += (font.height * size) + size + leading;
       }
       // set the 'cursor' for the next char to be drawn, then loop again for next char
       this.setCursor(offset, this.cursor_y);
@@ -365,9 +365,9 @@ Oled.prototype.update = function() {
   this._waitUntilReady(function() {
     // set the start and endbyte locations for oled display update
     var displaySeq = [
-      this.COLUMN_ADDR, 
-      this.screenConfig.coloffset, 
-      this.screenConfig.coloffset + this.WIDTH - 1, // column start and end address 
+      this.COLUMN_ADDR,
+      this.screenConfig.coloffset,
+      this.screenConfig.coloffset + this.WIDTH - 1, // column start and end address
       this.PAGE_ADDR, 0, (this.HEIGHT / 8) - 1 // page start and end address
     ];
 
@@ -422,7 +422,7 @@ Oled.prototype.clearDisplay = function(sync) {
       this.buffer[i] = 0x00;
       if (this.dirtyBytes.indexOf(i) === -1) {
         this.dirtyBytes.push(i);
-      } 
+      }
     }
   }
   if (immed) {
@@ -477,9 +477,9 @@ Oled.prototype.drawPixel = function(pixels, sync) {
         pageShift = 0x01 << (y - 8 * page);
 
     // is the pixel on the first row of the page?
-    (page == 0) ? byte = x : byte = x + (this.WIDTH * page); 
+    (page == 0) ? byte = x : byte = x + (this.WIDTH * page);
 
-    // colors! Well, monochrome. 
+    // colors! Well, monochrome.
     if (color === 'BLACK' || color === 0) {
       this.buffer[byte] &= ~pageShift;
     }
@@ -519,15 +519,15 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
 
         var byte = byteArray[i];
         var page = Math.floor(byte / this.WIDTH);
-        var col = Math.floor(byte % this.WIDTH); 
+        var col = Math.floor(byte % this.WIDTH);
 
         var displaySeq = [
-          this.COLUMN_ADDR, col, col, // column start and end address 
+          this.COLUMN_ADDR, col, col, // column start and end address
           this.PAGE_ADDR, page, page // page start and end address
         ];
 
         var displaySeqLen = displaySeq.length, v;
-        
+
         // send intro seq
         for (v = 0; v < displaySeqLen; v += 1) {
           this._transfer('cmd', displaySeq[v]);
@@ -589,7 +589,7 @@ Oled.prototype.startScroll = function(dir, start, stop) {
       cmdSeq.push(this.RIGHT_HORIZONTAL_SCROLL); break;
     case 'left':
       cmdSeq.push(this.LEFT_HORIZONTAL_SCROLL); break;
-    // TODO: left diag and right diag not working yet 
+    // TODO: left diag and right diag not working yet
     case 'left diagonal':
       cmdSeq.push(
         this.SET_VERTICAL_SCROLL_AREA, 0x00,
