@@ -103,6 +103,47 @@ function test(oled) {
     {
       delay: 10000,
       task: function() {
+        // create concenctric rectangle outlines
+        oled.clearDisplay();
+
+        //calc how many squares we can fit on the screen 
+        var padding = 2;
+        var square_count = ((oled.WIDTH / 2 ) / (padding * 2) ) - 1;
+
+        for(var i = 0; i < square_count; i ++){
+          var x =  ((i + 1) * padding);
+          var y =  ((i + 1) * padding);
+          var w = oled.WIDTH - (x * padding);
+          var h = oled.HEIGHT - (y * padding);
+          oled.drawRect(x,y,w,h,1,false);
+        }
+
+        oled._updateDirtyBytes(oled.dirtyBytes);
+      }
+    },
+    {
+      delay: 10000,
+      task: function() {
+        // create concenctric circle outlines
+        oled.clearDisplay();
+
+        var x = oled.WIDTH / 2;
+        var y = oled.HEIGHT / 2;
+        var radius = oled.HEIGHT - 1 
+
+        //calc how many circles we can fit on the screen 
+        var circle_count = radius / 3;
+
+        for(var i = 0; i < circle_count; i++){
+          var r = radius - (i * 3); 
+          oled.drawCircle(x,y,r,1,false);
+        }
+        oled._updateDirtyBytes(oled.dirtyBytes);
+      }
+    },
+    {
+      delay: 10000,
+      task: function() {
         oled.clearDisplay();
         // display text
         oled.setCursor(0, 7);

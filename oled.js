@@ -566,6 +566,26 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
   }
 }
 
+// Draw an outlined  rectangle
+Oled.prototype.drawRect = function(x, y, w, h, color, sync){
+  var immed = (typeof sync === 'undefined') ? true : sync;
+  //top 
+  this.drawLine(x,y, x + w, y,color,false);
+
+  //left
+  this.drawLine(x,y + 1, x, y + h - 1,color,false);
+
+  //right
+  this.drawLine(x + w ,y + 1, x + w, y + h - 1,color,false);
+
+  //bottom
+  this.drawLine(x,y + h - 1, x + w, y + h - 1,color,false);
+
+  if (immed) {
+    this._updateDirtyBytes(this.dirtyBytes);
+  }
+};
+
 // draw a filled rectangle on the oled
 Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
@@ -578,6 +598,52 @@ Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
     this._updateDirtyBytes(this.dirtyBytes);
   }
 }
+
+/**
+ * Draw a circle outline
+ *
+ * This method is ad verbatim translation from the corresponding
+ * method on the Adafruit GFX library
+ * https://github.com/adafruit/Adafruit-GFX-Library
+ */
+Oled.prototype.drawCircle = function(x0,y0,r,color,sync){
+  var immed = (typeof sync === 'undefined') ? true : sync;
+
+  var f = 1 - r;
+  var ddF_x = 1;
+  var ddF_y = -2 * r;
+  var x = 0;
+  var y = r;
+
+  this.drawPixel([x0,y0 + r,color],false);
+  this.drawPixel([x0,y0 - r,color],false);
+  this.drawPixel([x0 + r,y0,color],false);
+  this.drawPixel([x0 - r,y0,color],false);
+
+  while(x < y){
+    if(f >=0){
+      y--;
+      ddF_y += 2;
+      f += ddF_y;
+    }
+    x++;
+    ddF_x += 2;
+    f += ddF_x;
+
+    this.drawPixel([x0 + x,y0 + y,color],false);
+    this.drawPixel([x0 - x,y0 + y,color],false);
+    this.drawPixel([x0 + x,y0 - y,color],false);
+    this.drawPixel([x0 - x,y0 - y,color],false);
+    this.drawPixel([x0 + y,y0 + x,color],false);
+    this.drawPixel([x0 - y,y0 + x,color],false);
+    this.drawPixel([x0 + y,y0 - x,color],false);
+    this.drawPixel([x0 - y,y0 - x,color],false);
+  }
+
+  if (immed) {
+    this._updateDirtyBytes(this.dirtyBytes);
+  }
+};
 
 // activate scrolling for rows start through stop
 Oled.prototype.startScroll = function(dir, start, stop) {
