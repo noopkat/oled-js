@@ -570,16 +570,16 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
 Oled.prototype.drawRect = function(x, y, w, h, color, sync){
   var immed = (typeof sync === 'undefined') ? true : sync;
   //top 
-  this.drawLine(x,y, x + w, y,color,false);
+  this.drawLine(x, y, x + w, y,color,false);
 
   //left
-  this.drawLine(x,y + 1, x, y + h - 1,color,false);
+  this.drawLine(x, y + 1, x, y + h - 1, color, false);
 
   //right
-  this.drawLine(x + w ,y + 1, x + w, y + h - 1,color,false);
+  this.drawLine(x + w, y + 1, x + w, y + h - 1, color, false);
 
   //bottom
-  this.drawLine(x,y + h - 1, x + w, y + h - 1,color,false);
+  this.drawLine(x, y + h - 1, x + w, y + h - 1, color, false);
 
   if (immed) {
     this._updateDirtyBytes(this.dirtyBytes);
@@ -606,7 +606,7 @@ Oled.prototype.fillRect = function(x, y, w, h, color, sync) {
  * method on the Adafruit GFX library
  * https://github.com/adafruit/Adafruit-GFX-Library
  */
-Oled.prototype.drawCircle = function(x0,y0,r,color,sync){
+Oled.prototype.drawCircle = function(x0, y0, r, color, sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
 
   var f = 1 - r;
@@ -615,13 +615,16 @@ Oled.prototype.drawCircle = function(x0,y0,r,color,sync){
   var x = 0;
   var y = r;
 
-  this.drawPixel([x0,y0 + r,color],false);
-  this.drawPixel([x0,y0 - r,color],false);
-  this.drawPixel([x0 + r,y0,color],false);
-  this.drawPixel([x0 - r,y0,color],false);
+  this.drawPixel(
+    [[x0, y0 + r, color],
+    [x0, y0 - r, color],
+    [x0 + r, y0, color],
+    [x0 - r, y0, color]],
+    false
+  );
 
-  while(x < y){
-    if(f >=0){
+  while(x < y) {
+    if (f >=0) {
       y--;
       ddF_y += 2;
       f += ddF_y;
@@ -630,14 +633,17 @@ Oled.prototype.drawCircle = function(x0,y0,r,color,sync){
     ddF_x += 2;
     f += ddF_x;
 
-    this.drawPixel([x0 + x,y0 + y,color],false);
-    this.drawPixel([x0 - x,y0 + y,color],false);
-    this.drawPixel([x0 + x,y0 - y,color],false);
-    this.drawPixel([x0 - x,y0 - y,color],false);
-    this.drawPixel([x0 + y,y0 + x,color],false);
-    this.drawPixel([x0 - y,y0 + x,color],false);
-    this.drawPixel([x0 + y,y0 - x,color],false);
-    this.drawPixel([x0 - y,y0 - x,color],false);
+    this.drawPixel(
+      [[x0 + x, y0 + y, color],
+      [x0 - x, y0 + y, color],
+      [x0 + x, y0 - y, color],
+      [x0 - x, y0 - y, color],
+      [x0 + y, y0 + x, color],
+      [x0 - y, y0 + x, color],
+      [x0 + y, y0 - x, color],
+      [x0 - y, y0 - x, color]],
+      false
+    );
   }
 
   if (immed) {

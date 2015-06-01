@@ -115,10 +115,9 @@ function test(oled) {
           var y =  ((i + 1) * padding);
           var w = oled.WIDTH - (x * padding);
           var h = oled.HEIGHT - (y * padding);
-          oled.drawRect(x,y,w,h,1,false);
+          oled.drawRect(x, y, w, h, 1, false);
         }
-
-        oled._updateDirtyBytes(oled.dirtyBytes);
+        oled.update();
       }
     },
     {
@@ -136,9 +135,9 @@ function test(oled) {
 
         for(var i = 0; i < circle_count; i++){
           var r = radius - (i * 3); 
-          oled.drawCircle(x,y,r,1,false);
+          oled.drawCircle(x, y, r, 1, false);
         }
-        oled._updateDirtyBytes(oled.dirtyBytes);
+        oled.update();
       }
     },
     {
