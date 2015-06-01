@@ -220,6 +220,40 @@ Usage:
 oled.fillRect(1, 1, 10, 20, 1);
 ```
 
+### drawRect
+Draws an empty rectangle.
+
+Arguments:
++ int **x0, y0** - top left corner of rectangle
++ int **x1, y1** - bottom right corner of rectangle
++ int **color** - can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
+
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
+
+Usage:
+```javascript
+// args: (x0, y0, x1, y1, color)
+oled.drawRect(1, 1, 10, 20, 1);
+```
+
+### drawCircle
+Draws an empty circle.
+
+Arguments:
++ int **x** - x of circle's center
++ int **y** - y of circle's center
++ int **r** - radius of circle
++ int **color** - can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
+
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
+
+Usage:
+```javascript
+// args: (x, y, r, color)
+oled.drawCircle(30, 10, 5, 1);
+```
+
+
 ### drawBitmap
 Draws a bitmap using raw pixel data returned from an image parser. The image sourced must be monochrome, and indexed to only 2 colors. Resize the bitmap to your screen dimensions first. Using an image editor or ImageMagick might be required.
 
