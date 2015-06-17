@@ -150,6 +150,16 @@ function test(oled) {
         oled.writeString(font, 2, 'SCROLL!', 1, true);
         oled.startScroll('left', 0, 6);
       }
+    },
+    {
+      delay: 10000,
+      task: function() {
+        oled.stopScroll();
+        oled.clearDisplay();
+        oled.setCursor(0, 7);
+        oled.writeString(font, 2, 'DIAGONAL SCROLL', 1, true);
+        oled.startScroll('left diagonal', 0, 15);
+      }
     }
   ]);
 }

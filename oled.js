@@ -655,32 +655,45 @@ Oled.prototype.startScroll = function(dir, start, stop) {
       cmdSeq.push(this.RIGHT_HORIZONTAL_SCROLL); break;
     case 'left':
       cmdSeq.push(this.LEFT_HORIZONTAL_SCROLL); break;
-    // TODO: left diag and right diag not working yet
     case 'left diagonal':
       cmdSeq.push(
-        this.SET_VERTICAL_SCROLL_AREA, 0x00,
+        this.SET_VERTICAL_SCROLL_AREA,
+        0x00,
+        this.HEIGHT,
         this.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL,
-        this.HEIGHT
+        0x00,
+        start,
+        0x00,
+        stop,
+        0x01,
+        this.ACTIVATE_SCROLL
       );
       break;
-    // TODO: left diag and right diag not working yet
     case 'right diagonal':
       cmdSeq.push(
-        this.SET_VERTICAL_SCROLL_AREA, 0x00,
+        this.SET_VERTICAL_SCROLL_AREA,
+        0x00,
+        this.HEIGHT,
         this.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL,
-        this.HEIGHT
+        0x00,
+        start,
+        0x00,
+        stop,
+        0x01,
+        this.ACTIVATE_SCROLL
       );
       break;
   }
 
   this._waitUntilReady(function() {
-    cmdSeq.push(
-      0x00, start,
-      0x00, stop,
-      // TODO: these need to change when diagonal
-      0x00, 0xFF,
-      this.ACTIVATE_SCROLL
-    );
+    if(dir === 'right' || dir === 'left'){
+      cmdSeq.push(
+        0x00, start,
+        0x00, stop,
+        0x00, 0xFF,
+        this.ACTIVATE_SCROLL
+      );
+    }
 
     var i, cmdSeqLen = cmdSeq.length;
 
