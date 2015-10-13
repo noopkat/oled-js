@@ -4,7 +4,7 @@
   "description": "johnny-five/firmata.js compatible lib for oled devices",
   "main": "oled.js",
   "dependencies": {
-    "johnny-five": "~0.8.9"
+    "johnny-five": "~0.8.103"
   },
   "devDependencies": {
     "oled-font-5x7": "~1.0.0",
