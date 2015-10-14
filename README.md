@@ -300,7 +300,7 @@ Arguments:
 Usage:
 ```javascript
 // args: (direction, start, stop)
-oled.startscroll('left', 0, 15); // this will scroll an entire 128 x 32 screen
+oled.startScroll('left', 0, 15); // this will scroll an entire 128 x 32 screen
 ```
 
 ### stopScroll
@@ -308,7 +308,7 @@ Stops all current scrolling behaviour.
 
 Usage:
 ```javascript
-oled.stopscroll();
+oled.stopScroll();
 ```
 
 ### setCursor
