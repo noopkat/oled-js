@@ -534,7 +534,6 @@ Oled.prototype._updateDirtyBytes = function(byteArray) {
         }
         // send byte, then move on to next byte
         this._transfer('data', this.buffer[byte]);
-        this.buffer[byte];
       }
     }.bind(this));
   }
