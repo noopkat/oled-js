@@ -6,6 +6,7 @@ var Oled = function(board, five, opts) {
   this.PROTOCOL = (opts.address) ? 'I2C' : 'SPI';
   this.MICROVIEW = opts.microview || false;
   this.SLAVEPIN = opts.slavePin || 12;
+  this.RESETPIN = opts.resetPin || 4;
 
   // create command buffers
   this.DISPLAY_OFF = 0xAE;
@@ -99,8 +100,7 @@ var Oled = function(board, five, opts) {
   this.screenConfig = config[screenSize];
 
   if (this.PROTOCOL === 'I2C') {
-    // enable i2C in firmata
-    this.board.io.i2cConfig(0);
+    this._setUpI2C();
   } else {
     this._setUpSPI();
   }
@@ -153,6 +153,15 @@ Oled.prototype._setUpSPI = function() {
     this.rstPin.high();
     // Set SS to high so a connected chip will be "deselected" by default
     this.ssPin.high();
+}
+
+Oled.prototype._setUpI2C = function() {
+  // enable i2C in firmata
+  this.board.io.i2cConfig(0);
+  // set up reset pin and hold high
+  this.rstPin = new this.five.Pin(this.RESETPIN);
+  this.rstPin.low();
+  this.rstPin.high();
 }
 
 // writes both commands and data buffers to this device

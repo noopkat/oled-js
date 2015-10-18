@@ -26,7 +26,8 @@ If you haven't already, install [NodeJS](http://nodejs.org/) and the [Arduino ID
 Hook up I2C compatible oled to the Arduino. If using an Arduino Uno, pins are as follows:
 
 + SDL to pin A4
-+ SCL to pin A5 
++ SCL to pin A5
++ RESET to pin 4
 
 [Fritzing diagram is here](https://raw.githubusercontent.com/noopkat/johnny-five-oled/master/docs/fritzing/i2C_128x32_Uno.png). Look up the correct pins if using a board other than Arduino.
 
