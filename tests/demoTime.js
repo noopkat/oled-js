@@ -79,7 +79,7 @@ function test(oled) {
         oled.clearDisplay();
         // display text
         oled.setCursor(0, 0);
-        oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
+        oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true, 2);
       }
     },
     {
@@ -146,7 +146,7 @@ function test(oled) {
         oled.clearDisplay();
         // display text
         oled.setCursor(0, 7);
-        oled.writeString(font, 2, 'SCROLL!', 1, true);
+        oled.writeString(font, 2, 'SCROLL!', 1, true, 1);
         oled.startScroll('left', 0, 6);
       }
     },
@@ -156,7 +156,7 @@ function test(oled) {
         oled.stopScroll();
         oled.clearDisplay();
         oled.setCursor(0, 7);
-        oled.writeString(font, 2, 'DIAGONAL SCROLL', 1, true);
+        oled.writeString(font, 2, 'DIAGONAL SCROLL', 1, true, 1);
         oled.startScroll('left diagonal', 0, 15);
       }
     }
