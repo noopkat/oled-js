@@ -333,6 +333,7 @@ Arguments:
 + string **text** - the actual text you want to show on the display.
 + int **color** - color of text. Can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
 + bool **wrapping** - true applies word wrapping at the screen limit, false for no wrapping. If a long string without spaces is supplied as the text, just letter wrapping will apply instead.
++ int **letterspacing** - amount of spacing between lines of text on the screen. Negative numbers are also ok.
 
 Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
@@ -348,7 +349,7 @@ var font = require('oled-font-5x7');
 
 // sets cursor to x = 1, y = 1
 oled.setCursor(1, 1);
-oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true);
+oled.writeString(font, 1, 'Cats and dogs are really cool animals, you know.', 1, true, 2);
 ```
 
 ### update
