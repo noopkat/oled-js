@@ -155,6 +155,7 @@ function test(oled) {
       task: function() {
         oled.stopScroll();
         oled.clearDisplay();
+        oled.update();
         oled.setCursor(0, 7);
         oled.writeString(font, 2, 'DIAGONAL SCROLL', 1, true, 1);
         oled.startScroll('left diagonal', 0, 15);
