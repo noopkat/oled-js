@@ -401,6 +401,9 @@ Oled.prototype.update = function() {
     }
 
   }.bind(this));
+
+  // now that all bytes are synced, reset dirty state
+  this.dirtyBytes = [];
 }
 
 // send dim display command to oled
