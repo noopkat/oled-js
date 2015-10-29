@@ -7,15 +7,15 @@ oled js
 
 ## What is this?
 
-This repo is a library compatible with Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C/SPI compatible monochrome OLED screens. Works with 128 x 32, 128 x 64 and 96 x 16 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)). 
+This repo is a library compatible with Rick Waldron's [johnny-five](https://github.com/rwaldron/johnny-five) project. It adds support for I2C/SPI compatible monochrome OLED screens. Works with 128 x 32, 128 x 64 and 96 x 16 sized screens, of the SSD1306 OLED/PLED Controller (read the [datasheet here](http://www.adafruit.com/datasheets/SSD1306.pdf)).
 
 Got a [MicroView](https://www.sparkfun.com/products/12923) from GeekAmmo/SparkFun? That'll work too.
 
 Interested in the nerdy bits going on behind the scenes? [Read my blog post about how OLED screens work](http://meow.noopkat.com/oled-js/)!
 
-OLED screens are really cool - now you can control them with JavaScript! 
+OLED screens are really cool - now you can control them with JavaScript!
 
-## Install 
+## Install
 
 If you haven't already, install [NodeJS](http://nodejs.org/) and the [Arduino IDE](http://arduino.cc/en/Main/Software) to your computer.
 
@@ -36,7 +36,7 @@ If you'd like to run the demo:
 1. `git clone` this repo (get latest release instead of master branch)
 2. `npm install`
 3. Replace width, height, and other values in the options with your own in tests/demoTime.js
-4. `node tests/demoTime.js`    
+4. `node tests/demoTime.js`
 
 ### I2C example
 
@@ -44,20 +44,20 @@ If you'd like to run the demo:
 var five = require('johnny-five'),
     board = new five.Board(),
     Oled = require('oled-js');
-    
+
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
-  
+
   var opts = {
     width: 128,
-    height: 64, 
+    height: 64,
     address: 0x3D
   };
 
   var oled = new Oled(board, five, opts);
   // do cool oled things here
 });
-    
+
 ```
 
 ### Wait, how do I find out the I2C address of my OLED screen?
@@ -83,20 +83,20 @@ Fritzing diagram coming soon.
 var five = require('johnny-five'),
     board = new five.Board(),
     Oled = require('oled-js');
-    
+
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
 
   var opts = {
     width: 128,
-    height: 64, 
+    height: 64,
     slavePin: 12
   };
-  
+
   var oled = new Oled(board, five, opts);
   // do cool oled things here
 });
-    
+
 ```
 
 ## MicroView
@@ -111,20 +111,20 @@ This one is pretty simple - use the USB programmer that should have come with yo
 var five = require('johnny-five'),
     board = new five.Board(),
     Oled = require('oled-js');
-    
+
 board.on('ready', function() {
   console.log('Connected to Arduino, ready.');
 
   var opts = {
     width: 64,
-    height: 48, 
+    height: 48,
     microview: true
   };
-  
+
   var oled = new Oled(board, five, opts);
   // do cool oled things here
 });
-    
+
 ```
 
 ## Available methods
@@ -138,7 +138,7 @@ oled.clearDisplay();
 ```
 
 ### dimDisplay
-Lowers the contrast on the display. This method takes one argument, a boolean. True for dimming, false to restore normal contrast. 
+Lowers the contrast on the display. This method takes one argument, a boolean. True for dimming, false to restore normal contrast.
 
 Usage:
 ```javascript
@@ -146,7 +146,7 @@ oled.dimDisplay(true|false);
 ```
 
 ### invertDisplay
-Inverts the pixels on the display. Black becomes white, white becomes black. This method takes one argument, a boolean. True for inverted state, false to restore normal pixel colors. 
+Inverts the pixels on the display. Black becomes white, white becomes black. This method takes one argument, a boolean. True for inverted state, false to restore normal pixel colors.
 
 Usage:
 ```javascript
@@ -154,7 +154,7 @@ oled.invertDisplay(true|false);
 ```
 
 ### turnOffDisplay
-Turns the display off. 
+Turns the display off.
 
 Usage:
 ```javascript
@@ -162,7 +162,7 @@ oled.turnOffDisplay();
 ```
 
 ### turnOnDisplay
-Turns the display on. 
+Turns the display on.
 
 Usage:
 ```javascript
@@ -171,7 +171,7 @@ oled.turnOnDisplay();
 
 
 ### drawPixel
-Draws a pixel at a specified position on the display. This method takes one argument: a multi-dimensional array containing either one or more sets of pixels. 
+Draws a pixel at a specified position on the display. This method takes one argument: a multi-dimensional array containing either one or more sets of pixels.
 
 Each pixel needs an x position, a y position, and a color. Colors can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
 
@@ -202,7 +202,7 @@ Optional bool as last argument specifies whether screen updates immediately with
 Usage:
 ```javascript
 // args: (x0, y0, x1, y1, color)
-oled.drawLine(1, 1, 128, 32, 1); 
+oled.drawLine(1, 1, 128, 32, 1);
 ```
 
 ### fillRect
@@ -324,7 +324,7 @@ oled.setCursor(1, 1);
 ```
 
 ### writeString
-Writes a string of text to the display.  
+Writes a string of text to the display.
 Call setCursor() just before, if you need to set starting text position.
 
 Arguments:
@@ -337,7 +337,7 @@ Arguments:
 
 Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
-Before all of this text can happen, you need to load a font buffer for use. A good font to start with is NodeJS package [oled-font-5x7](https://www.npmjs.org/package/oled-font-5x7).
+Before all of this text can happen, you need to load a font buffer for use. A good font to start with is NodeJS package [oled-font-5x7](https://www.npmjs.org/package/oled-font-5x7). Want more options? Try rolling your own font module to require instead, using the [oled-js font foundry](http://noopkat.github.io/oled-js-font-foundry/)!
 
 Usage:
 ```
