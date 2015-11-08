@@ -1,12 +1,23 @@
-var Oled = function(board, five, opts) {
+var five = require('johnny-five');
+
+var Oled = function(opts) {
+  if (!(this instanceof Oled)) {
+    return new Oled(opts);
+  }
+
+  opt.pins = opt.pins || {};
+  pins.slave = pins.slave || 12
+  pins.reset = pins.reset || 4;
+
+  five.Board.Component.call(
+    this, opts = five.Board.Options(opts)
+  );
 
   this.HEIGHT = opts.height || 32;
   this.WIDTH = opts.width || 128;
   this.ADDRESS = opts.address || 0x3C;
   this.PROTOCOL = (opts.address) ? 'I2C' : 'SPI';
   this.MICROVIEW = opts.microview || false;
-  this.SLAVEPIN = opts.slavePin || 12;
-  this.RESETPIN = opts.resetPin || 4;
 
   // create command buffers
   this.DISPLAY_OFF = 0xAE;
@@ -47,10 +58,6 @@ var Oled = function(board, five, opts) {
 
   this.dirtyBytes = [];
 
-  // this is necessary as we're not natively sitting within johnny-five lib
-  this.board = board;
-  this.five = five;
-
   var config = {
     '128x32': {
       'multiplex': 0x1F,
@@ -89,7 +96,7 @@ var Oled = function(board, five, opts) {
     // generic spi pins
     this.SPIconfig = {
       'dcPin': 11,
-      'ssPin': this.SLAVEPIN,
+      'ssPin': this.pins.slave,
       'rstPin': 13,
       'clkPin': 10,
       'mosiPin': 9
@@ -141,12 +148,12 @@ Oled.prototype._initialise = function() {
 Oled.prototype._setUpSPI = function() {
 
     // set up spi pins
-    this.dcPin = new this.five.Pin(this.SPIconfig.dcPin);
-    this.ssPin = new this.five.Pin(this.SPIconfig.ssPin);
-    this.clkPin = new this.five.Pin(this.SPIconfig.clkPin);
-    this.mosiPin = new this.five.Pin(this.SPIconfig.mosiPin);
+    this.dcPin = new five.Pin(this.SPIconfig.dcPin);
+    this.ssPin = new five.Pin(this.SPIconfig.ssPin);
+    this.clkPin = new five.Pin(this.SPIconfig.clkPin);
+    this.mosiPin = new five.Pin(this.SPIconfig.mosiPin);
     // reset won't be used as it causes a bunch of default initialisations
-    this.rstPin = new this.five.Pin(this.SPIconfig.rstPin);
+    this.rstPin = new five.Pin(this.SPIconfig.rstPin);
 
     // get the screen out of default mode
     this.rstPin.low();
@@ -157,9 +164,9 @@ Oled.prototype._setUpSPI = function() {
 
 Oled.prototype._setUpI2C = function() {
   // enable i2C in firmata
-  this.board.io.i2cConfig(0);
+  this.io.i2cConfig(0);
   // set up reset pin and hold high
-  this.rstPin = new this.five.Pin(this.RESETPIN);
+  this.rstPin = new five.Pin(this.pins.reset);
   this.rstPin.low();
   this.rstPin.high();
 }
@@ -177,7 +184,7 @@ Oled.prototype._transfer = function(type, val) {
 
   if (this.PROTOCOL === 'I2C') {
     // send control and actual val
-    this.board.io.i2cWrite(this.ADDRESS, [control, val]);
+    this.io.i2cWrite(this.ADDRESS, [control, val]);
   } else {
     // send val via SPI, no control byte
     this._writeSPI(val, type);
@@ -221,7 +228,7 @@ Oled.prototype._writeSPI = function(byte, mode) {
 
 // read a byte from the oled
 Oled.prototype._readI2C = function(fn) {
-  this.board.io.i2cReadOnce(this.ADDRESS, 1, function(data) {
+  this.io.i2cReadOnce(this.ADDRESS, 1, function(data) {
     fn(data);
   });
 }
@@ -593,7 +600,7 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
 // Draw an outlined  rectangle
 Oled.prototype.drawRect = function(x, y, w, h, color, sync){
   var immed = (typeof sync === 'undefined') ? true : sync;
-  //top 
+  //top
   this.drawLine(x, y, x + w, y,color,false);
 
   //left

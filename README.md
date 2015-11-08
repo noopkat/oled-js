@@ -54,7 +54,7 @@ board.on('ready', function() {
     address: 0x3D
   };
 
-  var oled = new Oled(board, five, opts);
+  var oled = new Oled(opts);
   // do cool oled things here
 });
 
@@ -90,10 +90,10 @@ board.on('ready', function() {
   var opts = {
     width: 128,
     height: 64,
-    slavePin: 12
+    pins: { slave: 12 }
   };
 
-  var oled = new Oled(board, five, opts);
+  var oled = new Oled(opts);
   // do cool oled things here
 });
 
@@ -121,13 +121,35 @@ board.on('ready', function() {
     microview: true
   };
 
-  var oled = new Oled(board, five, opts);
+  var oled = new Oled(opts);
   // do cool oled things here
 });
 
 ```
+# API
 
-## Available methods
+### Oled
+Creates an Oled object and takes an optional options object.
+
+Usage:
+```javascript
+var oled = new Oled();
+
+// or
+
+var oled = new Oled({
+  // board: optional instance of johnny-five board if you have more than one
+  // microview: set to true if you're using a MicroView defaults to false
+  // width: number width of the display
+  // height: number height of the display
+  // address: number of an I2C address (eg, 0x3D, 61)
+  // pins: {
+    // slave: number slave pin defaults to 12
+    // reset : number reset pin defaults to 4
+  // }
+});
+```
+
 
 ### clearDisplay
 Fills the buffer with 'off' pixels (0x00). Optional bool argument specifies whether screen updates immediately with result. Default is true.
