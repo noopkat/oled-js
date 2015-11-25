@@ -8,7 +8,7 @@
     "oled-font-5x7": "~1.0.0",
     "png-to-lcd": "~1.0.2",
     "pngparse": "~2.0.1",
-    "temporal": "^0.4.1"
+    "temporal": "^0.5.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
