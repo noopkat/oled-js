@@ -183,6 +183,10 @@ Oled.prototype._transfer = function(type, val) {
     }
     // send control and actual val
     this.board.io.i2cWrite(this.ADDRESS, [control, val]);
+
+    if (this.MUX) {
+      this.board.io.i2cWrite(this.MUXADDRESS, [0xE0, this.MUXCHANNEL]);
+    }
   } else {
     // send val via SPI, no control byte
     this._writeSPI(val, type);
