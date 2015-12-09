@@ -12,22 +12,23 @@ board.on('ready', function() {
   // I2C va USB
   // var opts = {
   //   width: 128,
-  //   height: 64, 
+  //   height: 64,
   //   address: 0x3D
   // };
 
   // SPI via USB
   // var opts = {
   //   width: 128,
-  //   height: 64, 
+  //   height: 64,
   //   slavePin: 12
   // };
 
   // SPI Microview via USB
   var opts = {
     width: 64,
-    height: 48, 
-    microview: true
+    height: 48,
+    address: 0x3C
+    // microview: true
   };
 
   var oled = new Oled(board, five, opts);
@@ -44,7 +45,7 @@ function test(oled) {
   // clear first just in case
   oled.update();
 
-  // make it prettier 
+  // make it prettier
   oled.dimDisplay(true);
 
 
@@ -70,7 +71,7 @@ function test(oled) {
           oled.buffer = bitmapbuf;
           oled.update();
         });
-        
+
       }
     },
     {
@@ -106,7 +107,7 @@ function test(oled) {
         // create concenctric rectangle outlines
         oled.clearDisplay();
 
-        //calc how many squares we can fit on the screen 
+        //calc how many squares we can fit on the screen
         var padding = 2;
         var square_count = ((oled.WIDTH / 2 ) / (padding * 2) ) - 1;
 
@@ -128,13 +129,13 @@ function test(oled) {
 
         var x = oled.WIDTH / 2;
         var y = oled.HEIGHT / 2;
-        var radius = oled.HEIGHT - 1 
+        var radius = oled.HEIGHT - 1
 
-        //calc how many circles we can fit on the screen 
+        //calc how many circles we can fit on the screen
         var circle_count = radius / 3;
 
         for(var i = 0; i < circle_count; i++){
-          var r = radius - (i * 3); 
+          var r = radius - (i * 3);
           oled.drawCircle(x, y, r, 1, false);
         }
         oled.update();
