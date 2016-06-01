@@ -4,7 +4,7 @@
   "description": "johnny-five compatible lib for oled devices",
   "main": "oled.js",
   "devDependencies": {
-    "johnny-five": "0.9.x",
+    "johnny-five": "0.9.52",
     "oled-font-5x7": "~1.0.0",
     "png-to-lcd": "~1.0.3",
     "pngparse": "~2.0.1",
