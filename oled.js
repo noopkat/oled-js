@@ -247,7 +247,7 @@ Oled.prototype._waitUntilReady = function(callback) {
   };
 
   if (this.PROTOCOL === 'I2C') {
-    setTimeout(tick(callback), 0);
+    setTimeout(function(){tick(callback)}, 0);
   } else {
     callback();
   }
