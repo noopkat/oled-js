@@ -7,6 +7,8 @@ var Oled = function(board, five, opts) {
   this.MICROVIEW = opts.microview || false;
   this.SLAVEPIN = opts.slavePin || 12;
   this.RESETPIN = opts.resetPin || 4;
+  this.MUXADDRESS = opts.muxAddress || 0;
+  this.MUXCHANNEL = opts.muxChannel || 0;
 
   // create command buffers
   this.DISPLAY_OFF = 0xAE;
@@ -71,7 +73,7 @@ var Oled = function(board, five, opts) {
     '64x48': {
       'multiplex': 0x2F,
       'compins': 0x12,
-      'coloffset': (this.MICROVIEW) ? 32 : 0
+      'coloffset': 32
     }
   };
 
@@ -176,8 +178,15 @@ Oled.prototype._transfer = function(type, val) {
   }
 
   if (this.PROTOCOL === 'I2C') {
+    if (this.MUXADDRESS) {
+      this.board.io.i2cWrite(this.MUXADDRESS, [0xE0, this.MUXCHANNEL]);
+    }
     // send control and actual val
     this.board.io.i2cWrite(this.ADDRESS, [control, val]);
+
+    if (this.MUX) {
+      this.board.io.i2cWrite(this.MUXADDRESS, [0xE0, this.MUXCHANNEL]);
+    }
   } else {
     // send val via SPI, no control byte
     this._writeSPI(val, type);
@@ -232,6 +241,10 @@ Oled.prototype._waitUntilReady = function(callback) {
   var done,
       oled = this;
 
+  if (this.MUXADDRESS) {
+    this.board.io.i2cWrite(this.ADDRESS, [0xE1, this.MUXCHANNEL]);
+  }
+
   function tick(callback) {
     oled._readI2C(function(byte) {
       // read the busy byte in the response
@@ -240,14 +253,17 @@ Oled.prototype._waitUntilReady = function(callback) {
         // if not busy, it's ready for callback
         callback();
       } else {
-        console.log('I\'m busy!');
-        setTimeout(tick, 0);
+        setTimeout(function() {
+          tick(callback);
+        }, 0);
       }
     });
   };
 
   if (this.PROTOCOL === 'I2C') {
-    setTimeout(tick(callback), 0);
+    setTimeout(function() {
+      tick(callback);
+    }, 0);
   } else {
     callback();
   }
@@ -593,7 +609,7 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
 // Draw an outlined  rectangle
 Oled.prototype.drawRect = function(x, y, w, h, color, sync){
   var immed = (typeof sync === 'undefined') ? true : sync;
-  //top 
+  //top
   this.drawLine(x, y, x + w, y,color,false);
 
   //left
