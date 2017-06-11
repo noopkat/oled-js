@@ -100,7 +100,7 @@ var Oled = function(board, five, opts) {
   this.screenConfig = config[screenSize];
 
   if (this.PROTOCOL === 'I2C') {
-    this._setUpI2C();
+    this._setUpI2C(opts);
   } else {
     this._setUpSPI();
   }
@@ -155,9 +155,9 @@ Oled.prototype._setUpSPI = function() {
     this.ssPin.high();
 }
 
-Oled.prototype._setUpI2C = function() {
+Oled.prototype._setUpI2C = function(opts) {
   // enable i2C in firmata
-  this.board.io.i2cConfig(0);
+  this.board.io.i2cConfig(opts);
   // set up reset pin and hold high
   this.rstPin = new this.five.Pin(this.RESETPIN);
   this.rstPin.low();
