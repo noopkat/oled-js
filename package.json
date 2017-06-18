@@ -8,10 +8,13 @@
     "oled-font-5x7": "~1.0.0",
     "png-to-lcd": "~1.0.3",
     "pngparse": "~2.0.1",
-    "temporal": "^0.5.0"
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.3",
+    "temporal": "^0.5.0",
+    "testdouble": "^3.1.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/unit/oledjs.spec.js | tap-spec"
   },
   "repository": {
     "type": "git",
