@@ -8,9 +8,8 @@ oledjs.prototype._setUpI2C = td.function();
 oledjs.prototype._transfer = td.function();
 
 // require and stub johnny-five
-td.replace('johnny-five');
-var five = require('johnny-five');
-var board = new five.Board();
+var five = td.function();
+var board = new td.constructor();
 
 // import framebuffer snapshots
 var drawPixelBuffer = require('../buffers/drawPixel');
