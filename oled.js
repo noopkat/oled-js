@@ -7,6 +7,8 @@ var Oled = function(board, five, opts) {
   this.MICROVIEW = opts.microview || false;
   this.SLAVEPIN = opts.slavePin || 12;
   this.RESETPIN = opts.resetPin || 4;
+  this.DATA = opts.data || 0x40;
+  this.COMMAND = opts.command || 0x00;
 
   // create command buffers
   this.DISPLAY_OFF = 0xAE;
@@ -168,9 +170,9 @@ Oled.prototype._setUpI2C = function(opts) {
 Oled.prototype._transfer = function(type, val) {
   var control;
   if (type === 'data') {
-    control = 0x40;
+    control = this.DATA;
   } else if (type === 'cmd') {
-    control = 0x80;
+    control = this.COMMAND;
   } else {
     return;
   }
@@ -593,7 +595,7 @@ Oled.prototype.drawLine = function(x0, y0, x1, y1, color, sync) {
 // Draw an outlined  rectangle
 Oled.prototype.drawRect = function(x, y, w, h, color, sync){
   var immed = (typeof sync === 'undefined') ? true : sync;
-  //top 
+  //top
   this.drawLine(x, y, x + w, y,color,false);
 
   //left
