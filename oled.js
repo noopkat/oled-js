@@ -170,7 +170,7 @@ Oled.prototype._transfer = function(type, val) {
   if (type === 'data') {
     control = 0x40;
   } else if (type === 'cmd') {
-    control = 0x00;
+    control = 0x80;
   } else {
     return;
   }
