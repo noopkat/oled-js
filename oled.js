@@ -5,8 +5,12 @@ var Oled = function(board, five, opts) {
   this.ADDRESS = opts.address || 0x3C;
   this.PROTOCOL = (opts.address) ? 'I2C' : 'SPI';
   this.MICROVIEW = opts.microview || false;
-  this.SLAVEPIN = opts.slavePin || 12;
+  this.CHIPSELECTPIN = (opts.csPin || opts.slavePin) || 12;
   this.RESETPIN = opts.resetPin || 4;
+  this.SPIRESETPIN = opts.spiResetPin || 13;
+  this.DCPIN = opts.dcPin || 11;
+  this.CLKPIN = opts.clkPin || 10;
+  this.MOSIPIN = opts.mosiPin || 9;
   this.DATA = opts.data || 0x40;
   this.COMMAND = opts.command || 0x00;
 
@@ -90,11 +94,11 @@ var Oled = function(board, five, opts) {
   } else if (this.PROTOCOL === 'SPI') {
     // generic spi pins
     this.SPIconfig = {
-      'dcPin': 11,
-      'ssPin': this.SLAVEPIN,
-      'rstPin': 13,
-      'clkPin': 10,
-      'mosiPin': 9
+      'dcPin': this.DCPIN,
+      'ssPin': this.CHIPSELECTPIN,
+      'rstPin': this.SPIRESETPIN,
+      'clkPin': this.CLKPIN,
+      'mosiPin': this.MOSIPIN 
     };
   }
 

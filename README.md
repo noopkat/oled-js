@@ -90,7 +90,7 @@ board.on('ready', function() {
   var opts = {
     width: 128,
     height: 64,
-    slavePin: 12
+    csPin: 12
   };
 
   var oled = new Oled(board, five, opts);
