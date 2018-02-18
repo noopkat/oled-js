@@ -398,9 +398,8 @@ Oled.prototype.update = function() {
     }
 
     // write buffer data
-    for (v = 0; v < bufferLen; v += 1) {
-      this._transfer('data', this.buffer[v]);
-    }
+    var bufferToSend = Buffer.concat([Buffer.from([0x40]), this.buffer]);
+    var sentCount = this.wire.i2cWriteSync(this.ADDRESS, bufferToSend.length, bufferToSend);
 
   }.bind(this));
 
@@ -435,19 +434,10 @@ Oled.prototype.turnOnDisplay = function() {
 // clear all pixels currently on the display
 Oled.prototype.clearDisplay = function(sync) {
   var immed = (typeof sync === 'undefined') ? true : sync;
-  // write off pixels
-  //this.buffer.fill(0x00);
-  for (var i = 0; i < this.buffer.length; i += 1) {
-    if (this.buffer[i] !== 0x00) {
-      this.buffer[i] = 0x00;
-      if (this.dirtyBytes.indexOf(i) === -1) {
-        this.dirtyBytes.push(i);
-      }
-    }
-  }
-  if (immed) {
-    this._updateDirtyBytes(this.dirtyBytes);
-  }
+	this.buffer.fill(0x00);
+	if (immed) {
+		this.update();
+	}
 }
 
 // invert pixels on oled
