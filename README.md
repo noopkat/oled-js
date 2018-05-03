@@ -41,20 +41,21 @@ If you'd like to run the demo:
 ### I2C example
 
 ```javascript
-var five = require('johnny-five'),
-    board = new five.Board(),
-    Oled = require('oled-js');
+const five = require('johnny-five');
+const Oled = require('oled-js');
 
-board.on('ready', function() {
+const board = new five.Board();
+
+board.on('ready', () => {
   console.log('Connected to Arduino, ready.');
 
-  var opts = {
+  const opts = {
     width: 128,
     height: 64,
     address: 0x3D
   };
 
-  var oled = new Oled(board, five, opts);
+  const oled = new Oled(board, five, opts);
   // do cool oled things here
 });
 
@@ -80,20 +81,21 @@ Fritzing diagram coming soon.
 #### SPI example
 
 ```javascript
-var five = require('johnny-five'),
-    board = new five.Board(),
-    Oled = require('oled-js');
+const five = require('johnny-five');
+const Oled = require('oled-js');
 
-board.on('ready', function() {
+const board = new five.Board();
+
+board.on('ready', () => {
   console.log('Connected to Arduino, ready.');
 
-  var opts = {
+  const opts = {
     width: 128,
     height: 64,
     slavePin: 12
   };
 
-  var oled = new Oled(board, five, opts);
+  const oled = new Oled(board, five, opts);
   // do cool oled things here
 });
 
@@ -108,20 +110,21 @@ This one is pretty simple - use the USB programmer that should have come with yo
 ### Microview example
 
 ```javascript
-var five = require('johnny-five'),
-    board = new five.Board(),
-    Oled = require('oled-js');
+const five = require('johnny-five');
+const Oled = require('oled-js');
 
-board.on('ready', function() {
+const board = new five.Board();
+
+board.on('ready', () => {
   console.log('Connected to Arduino, ready.');
 
-  var opts = {
+  const opts = {
     width: 64,
     height: 48,
     microview: true
   };
 
-  var oled = new Oled(board, five, opts);
+  const oled = new Oled(board, five, opts);
   // do cool oled things here
 });
 
@@ -269,9 +272,9 @@ npm install pngparse
 ```
 
 ```javascript
-var pngparse = require('pngparse');
+const pngparse = require('pngparse');
 
-pngparse.parseFile('indexed_file.png', function(err, image) {
+pngparse.parseFile('indexed_file.png', (err, image) => {
 	oled.drawBitmap(image.data);
 });
 ```
@@ -283,9 +286,9 @@ npm install png-to-lcd
 ```
 
 ```javascript
-var pngtolcd = require('png-to-lcd');
+const pngtolcd = require('png-to-lcd');
 
-pngtolcd('nyan-cat.png', true, function(err, bitmap) {
+pngtolcd('nyan-cat.png', true, (err, bitmap) => {
   oled.buffer = bitmap;
   oled.update();
 });
@@ -345,7 +348,7 @@ npm install oled-font-5x7
 ```
 
 ```javascript
-var font = require('oled-font-5x7');
+const font = require('oled-font-5x7');
 
 // sets cursor to x = 1, y = 1
 oled.setCursor(1, 1);
