@@ -375,7 +375,7 @@ class Oled {
   // send the entire framebuffer to the oled
   update () {
     // wait for oled to be ready
-    this._waitUntilReady(function () {
+    this._waitUntilReady(() => {
       // set the start and endbyte locations for oled display update
       const displaySeq = [
         this.COLUMN_ADDR,
@@ -396,7 +396,7 @@ class Oled {
       for (let v = 0; v < bufferLen; v += 1) {
         this._transfer('data', this.buffer[v])
       }
-    }.bind(this))
+    })
 
     // now that all bytes are synced, reset dirty state
     this.dirtyBytes = []
@@ -517,7 +517,7 @@ class Oled {
   _updateDirtyBytes (byteArray) {
     const blen = byteArray.length
 
-    this._waitUntilReady(function () {
+    this._waitUntilReady(() => {
       let pageStart = Infinity
       let pageEnd = 0
       let colStart = Infinity
@@ -558,7 +558,7 @@ class Oled {
           this._transfer('data', this.buffer[this.WIDTH * i + j])
         }
       }
-    }.bind(this))
+    })
 
     // now that all bytes are synced, reset dirty state
     this.dirtyBytes = []
@@ -715,7 +715,7 @@ class Oled {
         break
     }
 
-    this._waitUntilReady(function () {
+    this._waitUntilReady(() => {
       if (dir === 'right' || dir === 'left') {
         cmdSeq.push(
           0x00, start,
@@ -728,7 +728,7 @@ class Oled {
       for (let i = 0; i < cmdSeq.length; i += 1) {
         this._transfer('cmd', cmdSeq[i])
       }
-    }.bind(this))
+    })
   }
 
   // stop scrolling display contents
