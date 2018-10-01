@@ -180,8 +180,6 @@ class Oled {
   }
 
   _writeSPI (byte, mode) {
-    let bit
-
     // set dc to low if command byte, high if data byte
     if (mode === 'cmd') {
       this.dcPin.low()
@@ -192,7 +190,7 @@ class Oled {
     // select the device as slave
     this.ssPin.low()
 
-    for (bit = 7; bit >= 0; bit--) {
+    for (let bit = 7; bit >= 0; bit--) {
       // pull clock low
       this.clkPin.low()
 
@@ -266,11 +264,11 @@ class Oled {
     const leading = linespacing || 2
 
     // loop through words
-    for (let w = 0; w < len; w += 1) {
+    for (let i = 0; i < len; i += 1) {
       // put the word space back in
-      wordArr[w] += ' '
+      wordArr[i] += ' '
 
-      const stringArr = wordArr[w].split('')
+      const stringArr = wordArr[i].split('')
       const slen = stringArr.length
       const compare = (font.width * size * slen) + (size * (len - 1))
 
@@ -393,8 +391,8 @@ class Oled {
       }
 
       // write buffer data
-      for (let v = 0; v < bufferLen; v += 1) {
-        this._transfer('data', this.buffer[v])
+      for (let i = 0; i < bufferLen; i += 1) {
+        this._transfer('data', this.buffer[i])
       }
     })
 
