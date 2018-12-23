@@ -44,7 +44,7 @@ class Oled {
     this.cursor_y = 0
 
     // new blank buffer
-    this.buffer = new Buffer((this.WIDTH * this.HEIGHT) / 8)
+    this.buffer = Buffer.alloc((this.WIDTH * this.HEIGHT) / 8)
     this.buffer.fill(0x00)
 
     this.dirtyBytes = []
