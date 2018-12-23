@@ -49,6 +49,10 @@ class Oled {
 
     this.dirtyBytes = []
 
+    // this is necessary as we're not natively sitting within johnny-five lib
+    this.board = board
+    this.five = five
+
     const config = {
       '128x32': {
         'multiplex': 0x1F,
