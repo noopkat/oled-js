@@ -3,7 +3,7 @@ var test = require('tape');
 var td = require('testdouble');
 
 // require and stub oled.js
-var oledjs = require('../../build/oled.js');
+var oledjs = require('../../build/oled.js').default;
 oledjs.prototype._setUpI2C = td.function();
 oledjs.prototype._transfer = td.function();
 
