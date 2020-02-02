@@ -1,6 +1,6 @@
 {
   "name": "oled-js",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "johnny-five compatible lib for oled devices",
   "main": "oled.js",
   "files": [
