@@ -340,7 +340,7 @@ export default class Oled {
     // loop through words
     for (let i = 0; i < len; i += 1) {
       // put the word space back in
-      wordArr[i] += ' '
+      if (i < len -1 ) wordArr[i] += ' ';
 
       const stringArr = wordArr[i].split('')
       const slen = stringArr.length
@@ -359,12 +359,16 @@ export default class Oled {
         const charBuf = this._findCharBuf(font, stringArr[i])
         // read the bits in the bytes that make up the char
         const charBytes = this._readCharBytes(charBuf)
-        // draw the entire character
-        this._drawChar(font, charBytes, size, false)
+        // draw the entire charactei
+        this._drawChar(font, charBytes, size, color, false)
+        
+        // fills in background behind the text pixels so that it's easier to read the text
+        this.fillRect(offset - padding, this.cursor_y, padding, (font.height * size), Number(!color), false)
 
         // calc new x position for the next char, add a touch of padding too if it's a non space char
         padding = (stringArr[i] === ' ') ? 0 : size + letspace
         offset += (font.width * size) + padding
+        
 
         // wrap letters if necessary
         if (wrap && (offset >= (this.WIDTH - font.width - letspace))) {
@@ -381,7 +385,7 @@ export default class Oled {
   }
 
   // draw an individual character to the screen
-  private _drawChar (font: Font, byteArray: number[][], size: number, sync?: boolean): void {
+  private _drawChar (font: Font, byteArray: number[][], size: number, color: Color, sync?: boolean): void {
     // take your positions...
     const x = this.cursor_x
     const y = this.cursor_y
@@ -392,20 +396,20 @@ export default class Oled {
     for (let i = 0; i < byteArray.length; i += 1) {
       pagePos = Math.floor(i / font.width) * 8
       for (let j = 0; j < 8; j += 1) {
-        // pull color out
-        const color = byteArray[i][j]
+        // pull color out (invert the color if user chose black)
+        const pixelState = (byteArray[i][j] === 1) ? color : Number(!color);
         let xpos
         let ypos
         // standard font size
         if (size === 1) {
           xpos = x + c
           ypos = y + j + pagePos
-          this.drawPixel([xpos, ypos, color], false)
+          this.drawPixel([xpos, ypos, pixelState], false)
         } else {
           // MATH! Calculating pixel size multiplier to primitively scale the font
           xpos = x + (i * size)
           ypos = y + (j * size)
-          this.fillRect(xpos, ypos, size, size, color, false)
+          this.fillRect(xpos, ypos, size, size, pixelState, false)
         }
       }
       c = (c < font.width - 1) ? c += 1 : 0

@@ -213,14 +213,14 @@ Draws a filled rectangle.
 
 Arguments:
 + int **x0, y0** - top left corner of rectangle
-+ int **x1, y1** - bottom right corner of rectangle
++ int **width, height** - width and height of rectangle in pixels
 + int **color** - can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
 
 Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
 Usage:
 ```javascript
-// args: (x0, y0, x1, y1, color)
+// args: (x0, y0, width, height, color)
 oled.fillRect(1, 1, 10, 20, 1);
 ```
 
@@ -229,14 +229,14 @@ Draws an empty rectangle.
 
 Arguments:
 + int **x0, y0** - top left corner of rectangle
-+ int **x1, y1** - bottom right corner of rectangle
++ int **width, height** - width and height of rectangle in pixels
 + int **color** - can be specified as either 0 for 'off' or black, and 1 or 255 for 'on' or white.
 
 Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
 
 Usage:
 ```javascript
-// args: (x0, y0, x1, y1, color)
+// args: (x0, y0, width, height, color)
 oled.drawRect(1, 1, 10, 20, 1);
 ```
 
