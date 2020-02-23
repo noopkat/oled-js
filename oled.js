@@ -500,11 +500,11 @@ class Oled {
       (page === 0) ? byte = x : byte = x + (this.WIDTH * page)
 
       // colors! Well, monochrome.
-      if (color === 'BLACK' || color === 0) {
+      if (color === 0) {
+        // BLACK pixel
         this.buffer[byte] &= ~pageShift
-      }
-
-      if (color === 'WHITE' || color > 0) {
+      } else {
+        // WHITE pixel
         this.buffer[byte] |= pageShift
       }
 
