@@ -39,7 +39,7 @@ interface SPIConfig {
   mosiPin: number
 }
 
-export default class Oled {
+export = class Oled {
   // Configuration
   private readonly HEIGHT: number
   private readonly WIDTH: number
