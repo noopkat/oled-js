@@ -10,7 +10,7 @@
   ],
   "devDependencies": {
     "@types/node": "^13.5.0",
-    "johnny-five": "*",
+    "johnny-five": "^1.4.0",
     "oled-font-5x7": "~1.0.0",
     "png-to-lcd": "~1.0.3",
     "pngparse": "~2.0.1",
@@ -22,7 +22,8 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@types/johnny-five": "*"
+    "@types/johnny-five": "*",
+    "serialport": "8"
   },
   "scripts": {
     "build": "tsc -b",
