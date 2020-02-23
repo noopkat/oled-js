@@ -1,44 +1,114 @@
-class Oled {
-  constructor (board, five, opts) {
+import { Board, Pin } from "johnny-five"
+
+enum Protocol {I2C, SPI}
+enum TransferType {Command, Data}
+type Direction = 'left' | 'left diagonal' | 'right' | 'right diagonal'
+type Color = 'BLACK' | 'WHITE' | number
+type Pixel = [number, number, Color]
+
+interface OledOptions {
+  height?: number
+  width?: number
+  address?: number
+  microview?: boolean
+  slavePin?: number
+  resetPin?: number
+  data?: number
+  command?: number
+}
+
+interface Font {
+  monospace: boolean
+  width: number
+  height: number
+  fontData: number[]
+  lookup: string[]
+}
+
+interface ScreenConfig {
+  multiplex: number
+  compins: number
+  coloffset: number
+}
+
+interface SPIConfig {
+  dcPin: number
+  ssPin: number
+  rstPin: number
+  clkPin: number
+  mosiPin: number
+}
+
+export default class Oled {
+  // Configuration
+  private readonly HEIGHT: number
+  private readonly WIDTH: number
+  private readonly ADDRESS: number
+  private readonly PROTOCOL: Protocol
+  private readonly MICROVIEW: boolean
+  private readonly SLAVEPIN: number
+  private readonly RESETPIN: number
+  private readonly DATA: number
+  private readonly COMMAND: number
+
+  private readonly board: Board
+  private readonly five: any
+
+  private readonly screenConfig: ScreenConfig
+  private readonly SPIconfig: SPIConfig
+
+  private dcPin: Pin
+  private ssPin: Pin
+  private clkPin: Pin
+  private mosiPin: Pin
+  private rstPin: Pin
+
+  // Commands
+  private static readonly DISPLAY_OFF: number = 0xAE
+  private static readonly DISPLAY_ON: number = 0xAF
+  private static readonly SET_DISPLAY_CLOCK_DIV: number = 0xD5
+  private static readonly SET_MULTIPLEX: number = 0xA8
+  private static readonly SET_DISPLAY_OFFSET: number = 0xD3
+  private static readonly SET_START_LINE: number = 0x00
+  private static readonly CHARGE_PUMP: number = 0x8D
+  private static readonly EXTERNAL_VCC: boolean = false
+  private static readonly MEMORY_MODE: number = 0x20
+  private static readonly SEG_REMAP: number = 0xA1 // using 0xA0 will flip screen
+  private static readonly COM_SCAN_DEC: number = 0xC8
+  private static readonly COM_SCAN_INC: number = 0xC0
+  private static readonly SET_COM_PINS: number = 0xDA
+  private static readonly SET_CONTRAST: number = 0x81
+  private static readonly SET_PRECHARGE: number = 0xd9
+  private static readonly SET_VCOM_DETECT: number = 0xDB
+  private static readonly DISPLAY_ALL_ON_RESUME: number = 0xA4
+  private static readonly NORMAL_DISPLAY: number = 0xA6
+  private static readonly COLUMN_ADDR: number = 0x21
+  private static readonly PAGE_ADDR: number = 0x22
+  private static readonly INVERT_DISPLAY: number = 0xA7
+  private static readonly ACTIVATE_SCROLL: number = 0x2F
+  private static readonly DEACTIVATE_SCROLL: number = 0x2E
+  private static readonly SET_VERTICAL_SCROLL_AREA: number = 0xA3
+  private static readonly RIGHT_HORIZONTAL_SCROLL: number = 0x26
+  private static readonly LEFT_HORIZONTAL_SCROLL: number = 0x27
+  private static readonly VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL: number = 0x29
+  private static readonly VERTICAL_AND_LEFT_HORIZONTAL_SCROLL: number = 0x2A
+
+  // State
+  private buffer: Buffer
+  private cursor_x: number
+  private cursor_y: number
+  private dirtyBytes: number[]
+
+  public constructor (board: Board, five: any, opts: OledOptions) {
     this.HEIGHT = opts.height || 32
     this.WIDTH = opts.width || 128
     this.ADDRESS = opts.address || 0x3C
-    this.PROTOCOL = (opts.address) ? 'I2C' : 'SPI'
+    this.PROTOCOL = (opts.address) ? Protocol.I2C : Protocol.SPI
     this.MICROVIEW = opts.microview || false
     this.SLAVEPIN = opts.slavePin || 12
     this.RESETPIN = opts.resetPin || 4
     this.DATA = opts.data || 0x40
     this.COMMAND = opts.command || 0x00
-
-    // create command buffers
-    this.DISPLAY_OFF = 0xAE
-    this.DISPLAY_ON = 0xAF
-    this.SET_DISPLAY_CLOCK_DIV = 0xD5
-    this.SET_MULTIPLEX = 0xA8
-    this.SET_DISPLAY_OFFSET = 0xD3
-    this.SET_START_LINE = 0x00
-    this.CHARGE_PUMP = 0x8D
-    this.EXTERNAL_VCC = false
-    this.MEMORY_MODE = 0x20
-    this.SEG_REMAP = 0xA1 // using 0xA0 will flip screen
-    this.COM_SCAN_DEC = 0xC8
-    this.COM_SCAN_INC = 0xC0
-    this.SET_COM_PINS = 0xDA
-    this.SET_CONTRAST = 0x81
-    this.SET_PRECHARGE = 0xd9
-    this.SET_VCOM_DETECT = 0xDB
-    this.DISPLAY_ALL_ON_RESUME = 0xA4
-    this.NORMAL_DISPLAY = 0xA6
-    this.COLUMN_ADDR = 0x21
-    this.PAGE_ADDR = 0x22
-    this.INVERT_DISPLAY = 0xA7
-    this.ACTIVATE_SCROLL = 0x2F
-    this.DEACTIVATE_SCROLL = 0x2E
-    this.SET_VERTICAL_SCROLL_AREA = 0xA3
-    this.RIGHT_HORIZONTAL_SCROLL = 0x26
-    this.LEFT_HORIZONTAL_SCROLL = 0x27
-    this.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL = 0x29
-    this.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL = 0x2A
 
     this.cursor_x = 0
     this.cursor_y = 0
@@ -53,7 +123,7 @@ class Oled {
     this.board = board
     this.five = five
 
-    const config = {
+    const config: { [screenSize: string]: ScreenConfig; } = {
       '128x32': {
         'multiplex': 0x1F,
         'compins': 0x02,
@@ -87,7 +157,7 @@ class Oled {
         'clkPin': 13,
         'mosiPin': 11
       }
-    } else if (this.PROTOCOL === 'SPI') {
+    } else if (this.PROTOCOL === Protocol.SPI) {
       // generic spi pins
       this.SPIconfig = {
         'dcPin': 11,
@@ -101,7 +171,7 @@ class Oled {
     const screenSize = `${this.WIDTH}x${this.HEIGHT}`
     this.screenConfig = config[screenSize]
 
-    if (this.PROTOCOL === 'I2C') {
+    if (this.PROTOCOL === Protocol.I2C) {
       this._setUpI2C(opts)
     } else {
       this._setUpSPI()
@@ -110,34 +180,34 @@ class Oled {
     this._initialise()
   }
 
-  _initialise () {
+  private _initialise (): void {
     // sequence of bytes to initialise with
     const initSeq = [
-      this.DISPLAY_OFF,
-      this.SET_DISPLAY_CLOCK_DIV, 0x80,
-      this.SET_MULTIPLEX, this.screenConfig.multiplex, // set the last value dynamically based on screen size requirement
-      this.SET_DISPLAY_OFFSET, 0x00, // sets offset pro to 0
-      this.SET_START_LINE,
-      this.CHARGE_PUMP, 0x14, // charge pump val
-      this.MEMORY_MODE, 0x00, // 0x0 act like ks0108
-      this.SEG_REMAP, // screen orientation
-      this.COM_SCAN_DEC, // screen orientation change to INC to flip
-      this.SET_COM_PINS, this.screenConfig.compins, // com pins val sets dynamically to match each screen size requirement
-      this.SET_CONTRAST, 0x8F, // contrast val
-      this.SET_PRECHARGE, 0xF1, // precharge val
-      this.SET_VCOM_DETECT, 0x40, // vcom detect
-      this.DISPLAY_ALL_ON_RESUME,
-      this.NORMAL_DISPLAY,
-      this.DISPLAY_ON
+      Oled.DISPLAY_OFF,
+      Oled.SET_DISPLAY_CLOCK_DIV, 0x80,
+      Oled.SET_MULTIPLEX, this.screenConfig.multiplex, // set the last value dynamically based on screen size requirement
+      Oled.SET_DISPLAY_OFFSET, 0x00, // sets offset pro to 0
+      Oled.SET_START_LINE,
+      Oled.CHARGE_PUMP, 0x14, // charge pump val
+      Oled.MEMORY_MODE, 0x00, // 0x0 act like ks0108
+      Oled.SEG_REMAP, // screen orientation
+      Oled.COM_SCAN_DEC, // screen orientation change to INC to flip
+      Oled.SET_COM_PINS, this.screenConfig.compins, // com pins val sets dynamically to match each screen size requirement
+      Oled.SET_CONTRAST, 0x8F, // contrast val
+      Oled.SET_PRECHARGE, 0xF1, // precharge val
+      Oled.SET_VCOM_DETECT, 0x40, // vcom detect
+      Oled.DISPLAY_ALL_ON_RESUME,
+      Oled.NORMAL_DISPLAY,
+      Oled.DISPLAY_ON
     ]
 
     // write init seq commands
     for (let i = 0; i < initSeq.length; i++) {
-      this._transfer('cmd', initSeq[i])
+      this._transfer(TransferType.Command, initSeq[i])
     }
   }
 
-  _setUpSPI () {
+  private _setUpSPI (): void {
     // set up spi pins
     this.dcPin = new this.five.Pin(this.SPIconfig.dcPin)
     this.ssPin = new this.five.Pin(this.SPIconfig.ssPin)
@@ -153,7 +223,7 @@ class Oled {
     this.ssPin.high()
   }
 
-  _setUpI2C (opts) {
+  private _setUpI2C (opts: OledOptions): void {
     // enable i2C in firmata
     this.board.io.i2cConfig(opts)
     // set up reset pin and hold high
@@ -163,18 +233,18 @@ class Oled {
   }
 
   // writes both commands and data buffers to this device
-  _transfer (type, val) {
-    let control
+  private _transfer (type: TransferType, val: number): void {
+    let control: number
 
-    if (type === 'data') {
+    if (type === TransferType.Data) {
       control = this.DATA
-    } else if (type === 'cmd') {
+    } else if (type === TransferType.Command) {
       control = this.COMMAND
     } else {
       return
     }
 
-    if (this.PROTOCOL === 'I2C') {
+    if (this.PROTOCOL === Protocol.I2C) {
       // send control and actual val
       this.board.io.i2cWrite(this.ADDRESS, [control, val])
     } else {
@@ -183,9 +253,9 @@ class Oled {
     }
   }
 
-  _writeSPI (byte, mode) {
+  private _writeSPI (byte: number, mode: TransferType): void {
     // set dc to low if command byte, high if data byte
-    if (mode === 'cmd') {
+    if (mode === TransferType.Command) {
       this.dcPin.low()
     } else {
       this.dcPin.high()
@@ -215,19 +285,19 @@ class Oled {
   }
 
   // read a byte from the oled
-  _readI2C (fn) {
-    this.board.io.i2cReadOnce(this.ADDRESS, 1, data => {
+  private _readI2C (fn: (data: number) => void): void {
+    this.board.io.i2cReadOnce(this.ADDRESS, 1, (data: number) => {
       fn(data)
     })
   }
 
   // sometimes the oled gets a bit busy with lots of bytes.
   // Read the response byte to see if this is the case
-  _waitUntilReady (callback) {
+  private _waitUntilReady (callback: () => void): void {
     const oled = this
 
-    const tick = (callback) => {
-      oled._readI2C((byte) => {
+    const tick = (callback: () => void) => {
+      oled._readI2C((byte: number) => {
         // read the busy byte in the response
         const busy = byte >> 7 & 1
         if (!busy) {
@@ -240,7 +310,7 @@ class Oled {
       })
     }
 
-    if (this.PROTOCOL === 'I2C') {
+    if (this.PROTOCOL === Protocol.I2C) {
       setTimeout(() => { tick(callback) }, 0)
     } else {
       callback()
@@ -248,13 +318,13 @@ class Oled {
   }
 
   // set starting position of a text string on the oled
-  setCursor (x, y) {
+  public setCursor (x: number, y: number): void {
     this.cursor_x = x
     this.cursor_y = y
   }
 
   // write text to the oled
-  writeString (font, size, string, color, wrap, linespacing, sync) {
+  public writeString (font: Font, size: number, string: string, color: Color, wrap: boolean, linespacing: number | null, sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
     const wordArr = string.split(' ')
 
@@ -290,7 +360,7 @@ class Oled {
         // read the bits in the bytes that make up the char
         const charBytes = this._readCharBytes(charBuf)
         // draw the entire charactei
-        this._drawChar(font, charBytes, size, false, color)
+        this._drawChar(font, charBytes, size, color, false)
         
         // fills in background behind the text pixels so that it's easier to read the text
         this.fillRect(offset - padding, this.cursor_y, padding, (font.height * size), Number(!color), false)
@@ -315,7 +385,7 @@ class Oled {
   }
 
   // draw an individual character to the screen
-  _drawChar (font, byteArray, size, sync, color) {
+  private _drawChar (font: Font, byteArray: number[][], size: number, color: Color, sync?: boolean): void {
     // take your positions...
     const x = this.cursor_x
     const y = this.cursor_y
@@ -347,7 +417,7 @@ class Oled {
   }
 
   // get character bytes from the supplied font object in order to send to framebuffer
-  _readCharBytes (byteArray) {
+  private _readCharBytes (byteArray: number[]): number[][] {
     let bitArr = []
     const bitCharArr = []
     // loop through each byte supplied for a char
@@ -370,7 +440,7 @@ class Oled {
   }
 
   // find where the character exists within the font object
-  _findCharBuf (font, c) {
+  private _findCharBuf (font: Font, c: string): number[] {
     const charLength = Math.ceil((font.width * font.height) / 8)
     // use the lookup array as a ref to find where the current char bytes start
     const cBufPos = font.lookup.indexOf(c) * charLength
@@ -379,15 +449,15 @@ class Oled {
   }
 
   // send the entire framebuffer to the oled
-  update () {
+  public update (): void {
     // wait for oled to be ready
     this._waitUntilReady(() => {
       // set the start and endbyte locations for oled display update
       const displaySeq = [
-        this.COLUMN_ADDR,
+        Oled.COLUMN_ADDR,
         this.screenConfig.coloffset,
         this.screenConfig.coloffset + this.WIDTH - 1, // column start and end address
-        this.PAGE_ADDR, 0, (this.HEIGHT / 8) - 1 // page start and end address
+        Oled.PAGE_ADDR, 0, (this.HEIGHT / 8) - 1 // page start and end address
       ]
 
       const displaySeqLen = displaySeq.length
@@ -395,12 +465,12 @@ class Oled {
 
       // send intro seq
       for (let i = 0; i < displaySeqLen; i += 1) {
-        this._transfer('cmd', displaySeq[i])
+        this._transfer(TransferType.Command, displaySeq[i])
       }
 
       // write buffer data
       for (let i = 0; i < bufferLen; i += 1) {
-        this._transfer('data', this.buffer[i])
+        this._transfer(TransferType.Data, this.buffer[i])
       }
     })
 
@@ -409,8 +479,8 @@ class Oled {
   }
 
   // send dim display command to oled
-  dimDisplay (bool) {
-    let contrast
+  public dimDisplay (bool: boolean): void {
+    let contrast: number
 
     if (bool) {
       contrast = 0 // Dimmed display
@@ -418,22 +488,22 @@ class Oled {
       contrast = 0xCF // Bright display
     }
 
-    this._transfer('cmd', this.SET_CONTRAST)
-    this._transfer('cmd', contrast)
+    this._transfer(TransferType.Command, Oled.SET_CONTRAST)
+    this._transfer(TransferType.Command, contrast)
   }
 
   // turn oled off
-  turnOffDisplay () {
-    this._transfer('cmd', this.DISPLAY_OFF)
+  public turnOffDisplay (): void {
+    this._transfer(TransferType.Command, Oled.DISPLAY_OFF)
   }
 
   // turn oled on
-  turnOnDisplay () {
-    this._transfer('cmd', this.DISPLAY_ON)
+  public turnOnDisplay (): void {
+    this._transfer(TransferType.Command, Oled.DISPLAY_ON)
   }
 
   // clear all pixels currently on the display
-  clearDisplay (sync) {
+  public clearDisplay (sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
     // write off pixels
     for (let i = 0; i < this.buffer.length; i += 1) {
@@ -451,16 +521,16 @@ class Oled {
   }
 
   // invert pixels on oled
-  invertDisplay (bool) {
+  public invertDisplay (bool: boolean): void {
     if (bool) {
-      this._transfer('cmd', this.INVERT_DISPLAY) // inverted
+      this._transfer(TransferType.Command, Oled.INVERT_DISPLAY) // inverted
     } else {
-      this._transfer('cmd', this.NORMAL_DISPLAY) // non inverted
+      this._transfer(TransferType.Command, Oled.NORMAL_DISPLAY) // non inverted
     }
   }
 
   // draw an image pixel array on the screen
-  drawBitmap (pixels, sync) {
+  public drawBitmap (pixels: Color[], sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
 
     for (let i = 0; i < pixels.length; i++) {
@@ -475,14 +545,18 @@ class Oled {
     }
   }
 
+  private _isSinglePixel(pixels: Pixel | Pixel[]): pixels is Pixel {
+    return typeof pixels[0] !== 'object'
+  }
+
   // draw one or many pixels on oled
-  drawPixel (pixels, sync) {
+  public drawPixel (pixels: Pixel | Pixel[], sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
 
     // handle lazy single pixel case
-    if (typeof pixels[0] !== 'object') pixels = [pixels]
+    if (this._isSinglePixel(pixels)) pixels = [pixels]
 
-    pixels.forEach(el => {
+    pixels.forEach((el: Pixel) => {
       // return if the pixel is out of range
       const [ x, y, color ] = el
 
@@ -520,7 +594,7 @@ class Oled {
   }
 
   // looks at dirty bytes, and sends the updated bytes to the display
-  _updateDirtyBytes (byteArray) {
+  private _updateDirtyBytes (byteArray: number[]): void {
     const blen = byteArray.length
 
     this._waitUntilReady(() => {
@@ -547,21 +621,21 @@ class Oled {
       if (!any) return
 
       const displaySeq = [
-        this.COLUMN_ADDR, colStart, colEnd, // column start and end address
-        this.PAGE_ADDR, pageStart, pageEnd // page start and end address
+        Oled.COLUMN_ADDR, colStart, colEnd, // column start and end address
+        Oled.PAGE_ADDR, pageStart, pageEnd // page start and end address
       ]
 
       const displaySeqLen = displaySeq.length
 
       // send intro seq
       for (let i = 0; i < displaySeqLen; i += 1) {
-        this._transfer('cmd', displaySeq[i])
+        this._transfer(TransferType.Command, displaySeq[i])
       }
 
       // send byte, then move on to next byte
       for (let i = pageStart; i <= pageEnd; i += 1) {
         for (let j = colStart; j <= colEnd; j += 1) {
-          this._transfer('data', this.buffer[this.WIDTH * i + j])
+          this._transfer(TransferType.Data, this.buffer[this.WIDTH * i + j])
         }
       }
     })
@@ -571,7 +645,7 @@ class Oled {
   }
 
   // using Bresenham's line algorithm
-  drawLine (x0, y0, x1, y1, color, sync) {
+  public drawLine (x0: number, y0: number, x1: number, y1: number, color: Color, sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
 
     const dx = Math.abs(x1 - x0)
@@ -598,7 +672,7 @@ class Oled {
   }
 
   // Draw an outlined  rectangle
-  drawRect (x, y, w, h, color, sync) {
+  public drawRect (x: number, y: number, w: number, h: number, color: Color, sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
     // top
     this.drawLine(x, y, x + w, y, color, false)
@@ -618,7 +692,7 @@ class Oled {
   };
 
   // draw a filled rectangle on the oled
-  fillRect (x, y, w, h, color, sync) {
+  public fillRect (x: number, y: number, w: number, h: number, color: Color, sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
     // one iteration for each column of the rectangle
     for (let i = x; i < x + w; i += 1) {
@@ -637,7 +711,7 @@ class Oled {
    * method on the Adafruit GFX library
    * https://github.com/adafruit/Adafruit-GFX-Library
    */
-  drawCircle (x0, y0, r, color, sync) {
+  public drawCircle (x0: number, y0: number, r: number, color: Color, sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
 
     let f = 1 - r
@@ -683,40 +757,40 @@ class Oled {
   };
 
   // activate scrolling for rows start through stop
-  startScroll (dir, start, stop) {
-    const cmdSeq = []
+  public startScroll (dir: Direction, start: number, stop: number): void {
+    const cmdSeq: number[] = []
 
     switch (dir) {
       case 'right':
-        cmdSeq.push(this.RIGHT_HORIZONTAL_SCROLL); break
+        cmdSeq.push(Oled.RIGHT_HORIZONTAL_SCROLL); break
       case 'left':
-        cmdSeq.push(this.LEFT_HORIZONTAL_SCROLL); break
+        cmdSeq.push(Oled.LEFT_HORIZONTAL_SCROLL); break
       case 'left diagonal':
         cmdSeq.push(
-          this.SET_VERTICAL_SCROLL_AREA,
+          Oled.SET_VERTICAL_SCROLL_AREA,
           0x00,
           this.HEIGHT,
-          this.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL,
+          Oled.VERTICAL_AND_LEFT_HORIZONTAL_SCROLL,
           0x00,
           start,
           0x00,
           stop,
           0x01,
-          this.ACTIVATE_SCROLL
+          Oled.ACTIVATE_SCROLL
         )
         break
       case 'right diagonal':
         cmdSeq.push(
-          this.SET_VERTICAL_SCROLL_AREA,
+          Oled.SET_VERTICAL_SCROLL_AREA,
           0x00,
           this.HEIGHT,
-          this.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL,
+          Oled.VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL,
           0x00,
           start,
           0x00,
           stop,
           0x01,
-          this.ACTIVATE_SCROLL
+          Oled.ACTIVATE_SCROLL
         )
         break
     }
@@ -727,20 +801,19 @@ class Oled {
           0x00, start,
           0x00, stop,
           0x00, 0xFF,
-          this.ACTIVATE_SCROLL
+          Oled.ACTIVATE_SCROLL
         )
       }
 
       for (let i = 0; i < cmdSeq.length; i += 1) {
-        this._transfer('cmd', cmdSeq[i])
+        this._transfer(TransferType.Command, cmdSeq[i])
       }
     })
   }
 
   // stop scrolling display contents
-  stopScroll () {
-    this._transfer('cmd', this.DEACTIVATE_SCROLL) // stahp
+  public stopScroll () {
+    this._transfer(TransferType.Command, Oled.DEACTIVATE_SCROLL) // stahp
   }
 }
 
-module.exports = Oled

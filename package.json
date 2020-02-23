@@ -2,11 +2,14 @@
   "name": "oled-js",
   "version": "5.0.1",
   "description": "johnny-five compatible lib for oled devices",
-  "main": "oled.js",
+  "main": "build/oled.js",
+  "types": "build/oled.d.ts",
   "files": [
-    "oled.js"
+    "build/oled.js",
+    "build/oled.d.ts"
   ],
   "devDependencies": {
+    "@types/node": "^13.5.0",
     "johnny-five": "*",
     "oled-font-5x7": "~1.0.0",
     "png-to-lcd": "~1.0.3",
@@ -15,9 +18,14 @@
     "tap-spec": "^4.1.1",
     "tape": "^4.6.3",
     "temporal": "^0.5.0",
-    "testdouble": "^3.1.0"
+    "testdouble": "^3.1.0",
+    "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "@types/johnny-five": "*"
   },
   "scripts": {
+    "build": "tsc -b",
     "test": "node tests/unit/oledjs.spec.js | tap-spec"
   },
   "repository": {

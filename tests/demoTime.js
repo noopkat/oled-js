@@ -1,7 +1,7 @@
 var five = require('johnny-five'),
     pngtolcd = require('png-to-lcd'),
     board = new five.Board(),
-    Oled = require('../oled'),
+    Oled = require('../build/oled'),
     font = require('oled-font-5x7'),
     temporal = require('temporal');
 
