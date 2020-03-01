@@ -20,7 +20,7 @@ board.on('ready', function() {
   // var opts = {
   //   width: 128,
   //   height: 64, 
-  //   slavePin: 12
+  //   secondaryPin: 12
   // };
 
   // SPI Microview via USB

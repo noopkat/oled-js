@@ -92,7 +92,7 @@ board.on('ready', () => {
   const opts = {
     width: 128,
     height: 64,
-    slavePin: 12
+    secondaryPin: 12
   };
 
   const oled = new Oled(board, five, opts);
