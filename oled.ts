@@ -3,7 +3,9 @@ import { Board, Pin } from "johnny-five"
 enum Protocol {I2C, SPI}
 enum TransferType {Command, Data}
 type Direction = 'left' | 'left diagonal' | 'right' | 'right diagonal'
-type Color = 'BLACK' | 'WHITE' | number
+type Black = 0x00
+type White = 0x01 | 0xff
+type Color = Black | White
 type Pixel = [number, number, Color]
 
 interface OledOptions {
@@ -323,6 +325,10 @@ export = class Oled {
     this.cursor_y = y
   }
 
+  private _invertColor(color: Color): Color {
+    return (color === 0) ? 1 : 0
+  }
+
   // write text to the oled
   public writeString (font: Font, size: number, string: string, color: Color, wrap: boolean, linespacing: number | null, sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
@@ -363,7 +369,7 @@ export = class Oled {
         this._drawChar(font, charBytes, size, color, false)
         
         // fills in background behind the text pixels so that it's easier to read the text
-        this.fillRect(offset - padding, this.cursor_y, padding, (font.height * size), Number(!color), false)
+        this.fillRect(offset - padding, this.cursor_y, padding, (font.height * size), this._invertColor(color), false)
 
         // calc new x position for the next char, add a touch of padding too if it's a non space char
         padding = (stringArr[i] === ' ') ? 0 : size + letspace
@@ -397,7 +403,7 @@ export = class Oled {
       pagePos = Math.floor(i / font.width) * 8
       for (let j = 0; j < 8; j += 1) {
         // pull color out (invert the color if user chose black)
-        const pixelState = (byteArray[i][j] === 1) ? color : Number(!color);
+        const pixelState = (byteArray[i][j] === 1) ? color : this._invertColor(color);
         let xpos
         let ypos
         // standard font size
