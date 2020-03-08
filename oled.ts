@@ -13,7 +13,7 @@ interface OledOptions {
   width?: number
   address?: number
   microview?: boolean
-  slavePin?: number
+  secondaryPin?: number
   resetPin?: number
   data?: number
   command?: number
@@ -48,7 +48,7 @@ export = class Oled {
   private readonly ADDRESS: number
   private readonly PROTOCOL: Protocol
   private readonly MICROVIEW: boolean
-  private readonly SLAVEPIN: number
+  private readonly SECONDARYPIN: number
   private readonly RESETPIN: number
   private readonly DATA: number
   private readonly COMMAND: number
@@ -107,7 +107,7 @@ export = class Oled {
     this.ADDRESS = opts.address || 0x3C
     this.PROTOCOL = (opts.address) ? Protocol.I2C : Protocol.SPI
     this.MICROVIEW = opts.microview || false
-    this.SLAVEPIN = opts.slavePin || 12
+    this.SECONDARYPIN = opts.secondaryPin || 12
     this.RESETPIN = opts.resetPin || 4
     this.DATA = opts.data || 0x40
     this.COMMAND = opts.command || 0x00
@@ -163,7 +163,7 @@ export = class Oled {
       // generic spi pins
       this.SPIconfig = {
         'dcPin': 11,
-        'ssPin': this.SLAVEPIN,
+        'ssPin': this.SECONDARYPIN,
         'rstPin': 13,
         'clkPin': 10,
         'mosiPin': 9
@@ -263,7 +263,7 @@ export = class Oled {
       this.dcPin.high()
     }
 
-    // select the device as slave
+    // select the device as secondary
     this.ssPin.low()
 
     for (let bit = 7; bit >= 0; bit--) {
@@ -281,7 +281,7 @@ export = class Oled {
       this.clkPin.high()
     }
 
-    // turn off slave select so other devices can use SPI
+    // turn off ss so other devices can use SPI
     // don't be an SPI hogging jerk basically
     this.ssPin.high()
   }
