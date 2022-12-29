@@ -19,7 +19,7 @@
     "tape": "^4.6.3",
     "temporal": "^0.5.0",
     "testdouble": "^3.1.0",
-    "typescript": "^3.7.5"
+    "typescript": "^4.0.0"
   },
   "dependencies": {
     "@types/johnny-five": "*",
