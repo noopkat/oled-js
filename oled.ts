@@ -229,7 +229,7 @@ export = class Oled {
     // enable i2C in firmata
     this.board.io.i2cConfig(opts)
     // set up reset pin and hold high
-    this.rstPin = new this.five.Pin(this.RESETPIN)
+    this.rstPin = new this.five.Pin({pin: this.RESETPIN, board: this.board})
     this.rstPin.low()
     this.rstPin.high()
   }
