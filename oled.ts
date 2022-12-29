@@ -43,63 +43,63 @@ interface SPIConfig {
 
 export = class Oled {
   // Configuration
-  private readonly HEIGHT: number
-  private readonly WIDTH: number
-  private readonly ADDRESS: number
-  private readonly PROTOCOL: Protocol
-  private readonly MICROVIEW: boolean
-  private readonly SECONDARYPIN: number
-  private readonly RESETPIN: number
-  private readonly DATA: number
-  private readonly COMMAND: number
+  /* private */  readonly HEIGHT: number
+  /* private */  readonly WIDTH: number
+  /* private */  readonly ADDRESS: number
+  /* private */  readonly PROTOCOL: Protocol
+  /* private */  readonly MICROVIEW: boolean
+  /* private */  readonly SECONDARYPIN: number
+  /* private */  readonly RESETPIN: number
+  /* private */  readonly DATA: number
+  /* private */  readonly COMMAND: number
 
-  private readonly board: Board
-  private readonly five: any
+  /* private */  readonly board: Board
+  /* private */  readonly five: any
 
-  private readonly screenConfig: ScreenConfig
-  private readonly SPIconfig: SPIConfig
+  /* private */  readonly screenConfig: ScreenConfig
+  /* private */  readonly SPIconfig: SPIConfig
 
-  private dcPin: Pin
-  private ssPin: Pin
-  private clkPin: Pin
-  private mosiPin: Pin
-  private rstPin: Pin
+  /* private */  dcPin: Pin
+  /* private */  ssPin: Pin
+  /* private */  clkPin: Pin
+  /* private */  mosiPin: Pin
+  /* private */  rstPin: Pin
 
   // Commands
-  private static readonly DISPLAY_OFF: number = 0xAE
-  private static readonly DISPLAY_ON: number = 0xAF
-  private static readonly SET_DISPLAY_CLOCK_DIV: number = 0xD5
-  private static readonly SET_MULTIPLEX: number = 0xA8
-  private static readonly SET_DISPLAY_OFFSET: number = 0xD3
-  private static readonly SET_START_LINE: number = 0x00
-  private static readonly CHARGE_PUMP: number = 0x8D
-  private static readonly EXTERNAL_VCC: boolean = false
-  private static readonly MEMORY_MODE: number = 0x20
-  private static readonly SEG_REMAP: number = 0xA1 // using 0xA0 will flip screen
-  private static readonly COM_SCAN_DEC: number = 0xC8
-  private static readonly COM_SCAN_INC: number = 0xC0
-  private static readonly SET_COM_PINS: number = 0xDA
-  private static readonly SET_CONTRAST: number = 0x81
-  private static readonly SET_PRECHARGE: number = 0xd9
-  private static readonly SET_VCOM_DETECT: number = 0xDB
-  private static readonly DISPLAY_ALL_ON_RESUME: number = 0xA4
-  private static readonly NORMAL_DISPLAY: number = 0xA6
-  private static readonly COLUMN_ADDR: number = 0x21
-  private static readonly PAGE_ADDR: number = 0x22
-  private static readonly INVERT_DISPLAY: number = 0xA7
-  private static readonly ACTIVATE_SCROLL: number = 0x2F
-  private static readonly DEACTIVATE_SCROLL: number = 0x2E
-  private static readonly SET_VERTICAL_SCROLL_AREA: number = 0xA3
-  private static readonly RIGHT_HORIZONTAL_SCROLL: number = 0x26
-  private static readonly LEFT_HORIZONTAL_SCROLL: number = 0x27
-  private static readonly VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL: number = 0x29
-  private static readonly VERTICAL_AND_LEFT_HORIZONTAL_SCROLL: number = 0x2A
+  /* private */  static readonly DISPLAY_OFF: number = 0xAE
+  /* private */  static readonly DISPLAY_ON: number = 0xAF
+  /* private */  static readonly SET_DISPLAY_CLOCK_DIV: number = 0xD5
+  /* private */  static readonly SET_MULTIPLEX: number = 0xA8
+  /* private */  static readonly SET_DISPLAY_OFFSET: number = 0xD3
+  /* private */  static readonly SET_START_LINE: number = 0x00
+  /* private */  static readonly CHARGE_PUMP: number = 0x8D
+  /* private */  static readonly EXTERNAL_VCC: boolean = false
+  /* private */  static readonly MEMORY_MODE: number = 0x20
+  /* private */  static readonly SEG_REMAP: number = 0xA1 // using 0xA0 will flip screen
+  /* private */  static readonly COM_SCAN_DEC: number = 0xC8
+  /* private */  static readonly COM_SCAN_INC: number = 0xC0
+  /* private */  static readonly SET_COM_PINS: number = 0xDA
+  /* private */  static readonly SET_CONTRAST: number = 0x81
+  /* private */  static readonly SET_PRECHARGE: number = 0xd9
+  /* private */  static readonly SET_VCOM_DETECT: number = 0xDB
+  /* private */  static readonly DISPLAY_ALL_ON_RESUME: number = 0xA4
+  /* private */  static readonly NORMAL_DISPLAY: number = 0xA6
+  /* private */  static readonly COLUMN_ADDR: number = 0x21
+  /* private */  static readonly PAGE_ADDR: number = 0x22
+  /* private */  static readonly INVERT_DISPLAY: number = 0xA7
+  /* private */  static readonly ACTIVATE_SCROLL: number = 0x2F
+  /* private */  static readonly DEACTIVATE_SCROLL: number = 0x2E
+  /* private */  static readonly SET_VERTICAL_SCROLL_AREA: number = 0xA3
+  /* private */  static readonly RIGHT_HORIZONTAL_SCROLL: number = 0x26
+  /* private */  static readonly LEFT_HORIZONTAL_SCROLL: number = 0x27
+  /* private */  static readonly VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL: number = 0x29
+  /* private */  static readonly VERTICAL_AND_LEFT_HORIZONTAL_SCROLL: number = 0x2A
 
   // State
-  private buffer: Buffer
-  private cursor_x: number
-  private cursor_y: number
-  private dirtyBytes: number[]
+  /* private */  buffer: Buffer
+  /* private */  cursor_x: number
+  /* private */  cursor_y: number
+  /* private */  dirtyBytes: number[]
 
   public constructor (board: Board, five: any, opts: OledOptions) {
     this.HEIGHT = opts.height || 32
@@ -182,7 +182,7 @@ export = class Oled {
     this._initialise()
   }
 
-  private _initialise (): void {
+  /* private */ _initialise (): void {
     // sequence of bytes to initialise with
     const initSeq = [
       Oled.DISPLAY_OFF,
@@ -209,7 +209,7 @@ export = class Oled {
     }
   }
 
-  private _setUpSPI (): void {
+  /* private */ _setUpSPI (): void {
     // set up spi pins
     this.dcPin = new this.five.Pin(this.SPIconfig.dcPin)
     this.ssPin = new this.five.Pin(this.SPIconfig.ssPin)
@@ -225,7 +225,7 @@ export = class Oled {
     this.ssPin.high()
   }
 
-  private _setUpI2C (opts: OledOptions): void {
+  /* private */ _setUpI2C (opts: OledOptions): void {
     // enable i2C in firmata
     this.board.io.i2cConfig(opts)
     // set up reset pin and hold high
@@ -235,7 +235,7 @@ export = class Oled {
   }
 
   // writes both commands and data buffers to this device
-  private _transfer (type: TransferType, val: number): void {
+  /* private */ _transfer (type: TransferType, val: number): void {
     let control: number
 
     if (type === TransferType.Data) {
@@ -255,7 +255,7 @@ export = class Oled {
     }
   }
 
-  private _writeSPI (byte: number, mode: TransferType): void {
+  /* private */ _writeSPI (byte: number, mode: TransferType): void {
     // set dc to low if command byte, high if data byte
     if (mode === TransferType.Command) {
       this.dcPin.low()
@@ -287,7 +287,7 @@ export = class Oled {
   }
 
   // read a byte from the oled
-  private _readI2C (fn: (data: number) => void): void {
+  /* private */ _readI2C (fn: (data: number) => void): void {
     this.board.io.i2cReadOnce(this.ADDRESS, 1, (data: number) => {
       fn(data)
     })
@@ -295,7 +295,7 @@ export = class Oled {
 
   // sometimes the oled gets a bit busy with lots of bytes.
   // Read the response byte to see if this is the case
-  private _waitUntilReady (callback: () => void): void {
+  /* private */ _waitUntilReady (callback: () => void): void {
     const oled = this
 
     const tick = (callback: () => void) => {
@@ -325,7 +325,7 @@ export = class Oled {
     this.cursor_y = y
   }
 
-  private _invertColor(color: Color): Color {
+  /* private */ _invertColor(color: Color): Color {
     return (color === 0) ? 1 : 0
   }
 
@@ -391,7 +391,7 @@ export = class Oled {
   }
 
   // draw an individual character to the screen
-  private _drawChar (font: Font, byteArray: number[][], size: number, color: Color, sync?: boolean): void {
+  /* private */ _drawChar (font: Font, byteArray: number[][], size: number, color: Color, sync?: boolean): void {
     // take your positions...
     const x = this.cursor_x
     const y = this.cursor_y
@@ -423,7 +423,7 @@ export = class Oled {
   }
 
   // get character bytes from the supplied font object in order to send to framebuffer
-  private _readCharBytes (byteArray: number[]): number[][] {
+  /* private */ _readCharBytes (byteArray: number[]): number[][] {
     let bitArr = []
     const bitCharArr = []
     // loop through each byte supplied for a char
@@ -446,7 +446,7 @@ export = class Oled {
   }
 
   // find where the character exists within the font object
-  private _findCharBuf (font: Font, c: string): number[] {
+  /* private */ _findCharBuf (font: Font, c: string): number[] {
     const charLength = Math.ceil((font.width * font.height) / 8)
     // use the lookup array as a ref to find where the current char bytes start
     const cBufPos = font.lookup.indexOf(c) * charLength
@@ -551,7 +551,7 @@ export = class Oled {
     }
   }
 
-  private _isSinglePixel(pixels: Pixel | Pixel[]): pixels is Pixel {
+  /* private */ _isSinglePixel(pixels: Pixel | Pixel[]): pixels is Pixel {
     return typeof pixels[0] !== 'object'
   }
 
@@ -600,7 +600,7 @@ export = class Oled {
   }
 
   // looks at dirty bytes, and sends the updated bytes to the display
-  private _updateDirtyBytes (byteArray: number[]): void {
+  /* private */ _updateDirtyBytes (byteArray: number[]): void {
     const blen = byteArray.length
 
     this._waitUntilReady(() => {
