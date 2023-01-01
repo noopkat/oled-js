@@ -296,7 +296,7 @@ pngtolcd('nyan-cat.png', true, (err, bitmap) => {
 
 
 ### drawQRCode
-Draws a QR code with a frame around it on the display. Needs the optional dependency `qrlite` to be installed for generating the QR code as a bitmap. In testing only the error correction level "Q" produces working QR codes and only strings are accepted as data for the QR code.
+Draws a QR code with a frame around it on the display. Needs the optional dependency `qr-image` to be installed for generating the QR code as a bitmap. Only strings are accepted as data for the QR code.
 
 Arguments:
 + int **x** - x of QR code (including margin)
