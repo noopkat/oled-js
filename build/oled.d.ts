@@ -93,6 +93,7 @@ declare const _default: {
         _updateDirtyBytes(byteArray: number[]): void;
         drawLine(x0: number, y0: number, x1: number, y1: number, color: Color, sync?: boolean): void;
         drawRect(x: number, y: number, w: number, h: number, color: Color, sync?: boolean): void;
+        drawQRCode(x: number, y: number, data: string, margin?: number, sync?: boolean): void;
         fillRect(x: number, y: number, w: number, h: number, color: Color, sync?: boolean): void;
         drawCircle(x0: number, y0: number, r: number, color: Color, sync?: boolean): void;
         startScroll(dir: Direction, start: number, stop: number): void;

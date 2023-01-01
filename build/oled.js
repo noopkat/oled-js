@@ -1,5 +1,11 @@
 "use strict";
 var _a;
+var QRLite = null;
+try {
+    QRLite = require("qrlite");
+}
+catch (er) {
+}
 var Protocol;
 (function (Protocol) {
     Protocol[Protocol["I2C"] = 0] = "I2C";
@@ -451,6 +457,30 @@ module.exports = (_a = (function () {
             }
         };
         ;
+        Oled.prototype.drawQRCode = function (x, y, data, margin, sync) {
+            if (margin === void 0) { margin = 4; }
+            if (QRLite) {
+                var immed = (typeof sync === 'undefined') ? true : sync;
+                var qr = QRLite.convert(data, { level: "Q" });
+                var pixels = qr.getPixels();
+                var bitmap = pixels.map(function (pixel) { return (pixel ? 0 : 1); });
+                var width = Math.sqrt(pixels.length);
+                this.fillRect(x, y, width + margin * 2, width + margin * 2, 1);
+                for (var i = 0; i < bitmap.length; i++) {
+                    var px = Math.floor(i % width);
+                    var py = Math.floor(i / width);
+                    px += margin + x;
+                    py += margin + y;
+                    this.drawPixel([px, py, bitmap[i]], false);
+                }
+                if (immed) {
+                    this._updateDirtyBytes(this.dirtyBytes);
+                }
+            }
+            else {
+                console.log("Missing optional dependency: qrlite");
+            }
+        };
         Oled.prototype.fillRect = function (x, y, w, h, color, sync) {
             var immed = (typeof sync === 'undefined') ? true : sync;
             for (var i = x; i < x + w; i += 1) {

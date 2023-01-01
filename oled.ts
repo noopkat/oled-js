@@ -1,5 +1,13 @@
 import { Board, Pin } from "johnny-five"
 
+let QRLite : any = null;
+try {
+  // import optional dependency for drawing QR codes  
+  QRLite = require("qrlite");
+} catch (er) {
+  // Do nothing
+}
+
 enum Protocol {I2C, SPI}
 enum TransferType {Command, Data}
 type Direction = 'left' | 'left diagonal' | 'right' | 'right diagonal'
@@ -682,7 +690,7 @@ export = class Oled {
     }
   }
 
-  // Draw an outlined  rectangle
+  // Draw an outlined rectangle
   public drawRect (x: number, y: number, w: number, h: number, color: Color, sync?: boolean): void {
     const immed = (typeof sync === 'undefined') ? true : sync
     // top
@@ -701,6 +709,44 @@ export = class Oled {
       this._updateDirtyBytes(this.dirtyBytes)
     }
   };
+
+  // Draw a QR code
+  public drawQRCode(x: number, y: number, data: string, margin = 4, sync?: boolean): void {
+    if (QRLite) {
+      const immed = (typeof sync === 'undefined') ? true : sync
+      const qr = QRLite.convert(data, { level: "Q" });
+      const pixels = qr.getPixels();
+      const bitmap = pixels.map((pixel : boolean) => (pixel ? 0 : 1)); // black and white or white and black?
+      const width = Math.sqrt(pixels.length);
+
+      // Fill background for the QR code in white
+      this.fillRect(
+        x,
+        y,
+        width + margin * 2,
+        width + margin * 2,
+        1
+      );
+
+      // Draw QR code pixels in black
+      for (let i = 0; i < bitmap.length; i++) {
+        let px = Math.floor(i % width);
+        let py = Math.floor(i / width);
+
+        // add margin and offset from top-left
+        px += margin + x;
+        py += margin + y;
+
+        this.drawPixel([px, py, bitmap[i]], false);
+      }
+
+      if (immed) {
+        this._updateDirtyBytes(this.dirtyBytes)
+      }
+    } else {
+      console.log("Missing optional dependency: qrlite");
+    }
+  }
 
   // draw a filled rectangle on the oled
   public fillRect (x: number, y: number, w: number, h: number, color: Color, sync?: boolean): void {
