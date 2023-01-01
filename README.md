@@ -294,6 +294,25 @@ pngtolcd('nyan-cat.png', true, (err, bitmap) => {
 });
 ```
 
+
+### drawQRCode
+Draws a QR code with a frame around it on the display. Needs the optional dependency `qr-image` to be installed for generating the QR code as a bitmap. Only strings are accepted as data for the QR code.
+
+Arguments:
++ int **x** - x of QR code (including margin)
++ int **y** - y of QR code (including margin)
++ string **data** - data string to be encoded, i.e. a URL
++ int **margin** - thickness of the frame/margin around the QR code, default is 4
+
+Optional bool as last argument specifies whether screen updates immediately with result. Default is true.
+
+Usage:
+```javascript
+// args: (x, y, data, margin)
+oled.drawQRCode(10, 10, "http://example.com", 5);
+```
+
+
 ### startScroll
 Scrolls the current display either left or right.
 Arguments:
