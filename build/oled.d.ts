@@ -81,6 +81,7 @@ declare const _default: {
         _readCharBytes(byteArray: number[]): number[][];
         _findCharBuf(font: Font, c: string): number[];
         update(): void;
+        updateDirty(): void;
         dimDisplay(bool: boolean): void;
         turnOffDisplay(): void;
         turnOnDisplay(): void;

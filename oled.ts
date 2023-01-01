@@ -484,6 +484,11 @@ export = class Oled {
     this.dirtyBytes = []
   }
 
+  // update only the dirty bytes
+  public updateDirty (): void {
+    this._updateDirtyBytes(this.dirtyBytes);
+  }  
+
   // send dim display command to oled
   public dimDisplay (bool: boolean): void {
     let contrast: number

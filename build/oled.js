@@ -289,6 +289,9 @@ module.exports = (_a = (function () {
             });
             this.dirtyBytes = [];
         };
+        Oled.prototype.updateDirty = function () {
+            this._updateDirtyBytes(this.dirtyBytes);
+        };
         Oled.prototype.dimDisplay = function (bool) {
             var contrast;
             if (bool) {
