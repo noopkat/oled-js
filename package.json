@@ -25,7 +25,7 @@
     "@types/johnny-five": "*"
   },
   "optionalDependencies": {
-    "qrlite": "^1.1.0"
+    "qr-image": "^3.2.0"
   },
   "scripts": {
     "build": "tsc -b",

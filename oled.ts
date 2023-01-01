@@ -1,10 +1,10 @@
 import { Board, Pin } from "johnny-five"
 
-let QRLite : any = null;
+let qr : any = null;
 try {
   // import optional dependency for drawing QR codes  
-  QRLite = require("qrlite");
-} catch (er) {
+  qr = require("qr-image");
+} catch (err) {
   // Do nothing
 }
 
@@ -712,10 +712,10 @@ export = class Oled {
 
   // Draw a QR code
   public drawQRCode(x: number, y: number, data: string, margin = 4, sync?: boolean): void {
-    if (QRLite) {
+    if (qr) {
       const immed = (typeof sync === 'undefined') ? true : sync
-      const qr = QRLite.convert(data, { level: "Q" });
-      const pixels = qr.getPixels();
+      const matrix = qr.matrix(data);
+      const pixels = matrix.flat();
       const bitmap = pixels.map((pixel : boolean) => (pixel ? 0 : 1)); // black and white or white and black?
       const width = Math.sqrt(pixels.length);
 
@@ -744,7 +744,7 @@ export = class Oled {
         this._updateDirtyBytes(this.dirtyBytes)
       }
     } else {
-      console.log("Missing optional dependency: qrlite");
+      console.log("Missing optional dependency: qr-image");
     }
   }
 

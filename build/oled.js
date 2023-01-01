@@ -1,10 +1,10 @@
 "use strict";
 var _a;
-var QRLite = null;
+var qr = null;
 try {
-    QRLite = require("qrlite");
+    qr = require("qr-image");
 }
-catch (er) {
+catch (err) {
 }
 var Protocol;
 (function (Protocol) {
@@ -459,10 +459,10 @@ module.exports = (_a = (function () {
         ;
         Oled.prototype.drawQRCode = function (x, y, data, margin, sync) {
             if (margin === void 0) { margin = 4; }
-            if (QRLite) {
+            if (qr) {
                 var immed = (typeof sync === 'undefined') ? true : sync;
-                var qr = QRLite.convert(data, { level: "Q" });
-                var pixels = qr.getPixels();
+                var matrix = qr.matrix(data);
+                var pixels = matrix.flat();
                 var bitmap = pixels.map(function (pixel) { return (pixel ? 0 : 1); });
                 var width = Math.sqrt(pixels.length);
                 this.fillRect(x, y, width + margin * 2, width + margin * 2, 1);
@@ -478,7 +478,7 @@ module.exports = (_a = (function () {
                 }
             }
             else {
-                console.log("Missing optional dependency: qrlite");
+                console.log("Missing optional dependency: qr-image");
             }
         };
         Oled.prototype.fillRect = function (x, y, w, h, color, sync) {
